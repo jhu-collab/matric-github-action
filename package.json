@@ -1,0 +1,30 @@
+{
+  "name": "matric-github-action",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/jhu-collab/matric-github-action.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/jhu-collab/matric-github-action/issues"
+  },
+  "homepage": "https://github.com/jhu-collab/matric-github-action#readme",
+  "dependencies": {
+    "@actions/core": "^1.10.0",
+    "@actions/github": "^5.1.1"
+  },
+  "devDependencies": {
+    "@types/node": "^18.8.5",
+    "@vercel/ncc": "^0.34.0",
+    "prettier": "^2.7.1",
+    "typescript": "^4.8.4"
+  }
+}
