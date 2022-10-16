@@ -1,2 +1,2 @@
-"use strict";
-console.log('config!');
+'use strict';
+console.log('hello world!');

@@ -1,0 +1,23 @@
+name: Prettier
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  format:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-node@v2
+        with:
+          node-version: 18
+          cache: 'npm'
+      - name: Install Dependencies
+        run: npm install
+      - name: Run Prettier
+        run: npx prettier "./src/**/*.{js,jsx,ts,tsx}" --check
