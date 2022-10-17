@@ -9,18 +9,18 @@ on:
     branches:
       - main
       - build-autograding-process
-
 jobs:
-    
   job-public-repo-ubuntu:
     runs-on: ubuntu-latest
+    permissions:
+      id-token: write
     steps:
       - uses: actions/checkout@v2
       - uses: actions/setup-node@v2
         with:
           node-version: 18
           cache: 'npm'
-      - name: test
+      - name: tests
         uses: ./
       
       - name: Access cloned repository content
