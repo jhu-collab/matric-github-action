@@ -5,4 +5,9 @@ outputs:
     description: 'ID token generated from OIDC'
 runs:
   using: 'node16'
-  main: 'index.js'
+  main: 'dist/index.js'
+  steps:
+    - name: 'Clone repo'
+      run: |
+        echo "hello ${{ outputs.token }}"
+      shell: bash
