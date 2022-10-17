@@ -14,3 +14,14 @@ jobs:
         run: |
           echo "hello"
         shell: bash
+  create-results-folder:
+    runs-on: ubuntu-latest
+    steps:
+      - name: 'Create folder'
+        run: |
+          FILE=/results
+          if [ -f "$FILE" ]; then
+              echo "$FILE exists."
+          else 
+              echo "$FILE does not exist."
+          fi
