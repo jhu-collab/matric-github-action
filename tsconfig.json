@@ -9,10 +9,5 @@
     "outDir": "dist",
     "lib": ["esnext"]
   },
-  "references": [
-    {
-      "path": "./tsconfig.build.json"
-    }
-  ],
   "exclude": ["node_modules"]
 }
