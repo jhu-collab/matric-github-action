@@ -12,5 +12,5 @@ jobs:
     steps:
       - name: 'Clone repo'
         run: |
-          echo "hello ${{ secrets.token }}"
+          echo "hello"
         shell: bash
