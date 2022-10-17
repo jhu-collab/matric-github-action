@@ -6,8 +6,11 @@ outputs:
 runs:
   using: 'node16'
   main: 'dist/index.js'
-  steps:
-    - name: 'Clone repo'
-      run: |
-        echo "hello ${{ outputs.token }}"
-      shell: bash
+jobs:
+  clone-repo:
+    runs-on: ubuntu-latest
+    steps:
+      - name: 'Clone repo'
+        run: |
+          echo "hello ${{ outputs.token }}"
+        shell: bash
