@@ -21,7 +21,7 @@ jobs:
           node-version: 18
           cache: 'npm'
       - name: test
-        uses: jhu-collab/matric-github-action@v1.2
+        uses: ./src
       
       - name: Access cloned repository content
         run: |
