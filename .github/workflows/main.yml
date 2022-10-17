@@ -1,0 +1,24 @@
+name: Clone Public Repository Workflow
+
+on:
+  push:
+    branches:
+      - main
+      - build-autograding-process
+  pull_request:
+    branches:
+      - main
+      - build-autograding-process
+
+jobs:
+    
+  job-public-repo-ubuntu:
+    runs-on: ubuntu-latest
+    steps:
+      
+      - name: test
+        uses: jhu-collab/matric-github-action@v2
+      
+      - name: Access cloned repository content
+        run: |
+          echo "Ran the action"
