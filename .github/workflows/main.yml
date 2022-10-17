@@ -21,7 +21,7 @@ jobs:
           node-version: 18
           cache: 'npm'
       - name: test
-        uses: ./src
+        working-directory: ./src
       
       - name: Access cloned repository content
         run: |
