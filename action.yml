@@ -12,5 +12,5 @@ jobs:
     steps:
       - name: 'Clone repo'
         run: |
-          echo "hello ${{ Autograder.outputs.token }}"
+          echo "hello ${{ secrets.token }}"
         shell: bash
