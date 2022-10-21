@@ -62,6 +62,8 @@ async function moveFile(oldPath: string, newPath: string): Promise<void> {
 
 async function run(): Promise<void> {
   const topUrl = build_path();
+  const payload = github.context.payload;
+  const repoName = payload.repository.name;
   //const oidcToken = await core.getIDToken();
   //const { courseId, assignmentId } = await genMatricTokenInfo(oidcToken);
   const repoUrl = 'https://github.com/ARaps1/csf-hw3.git';
@@ -69,8 +71,8 @@ async function run(): Promise<void> {
   cloneRepo(repoUrl);
   moveFile(path.join(topUrl, 'csf-hw3'), path.join(topUrl, 'source'));
   //moveFile(path.join(topUrl, 'csf-hw3'), path.join(topUrl, 'submission'));
-  console.info(JSON.stringify(github.context.payload, undefined, 2));
-  console.info('\n ');
+
+  console.info('repoName');
   fs.readdirSync(build_path()).forEach((file: any) => {
     console.info(file);
   });
@@ -82,7 +84,6 @@ async function run(): Promise<void> {
     },
     (_error: any, _stdout: any, _stderr: any) => {},
   );
-  exec();
 }
 
 function build_path(): string {
