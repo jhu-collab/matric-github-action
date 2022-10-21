@@ -17095,9 +17095,6 @@ async function cloneRepo(repoName, url) {
         if (!error) {
             moveFile(path.join(directory, repoName), path.join(directory, 'source'));
         }
-        fs.readdirSync(build_path()).forEach((file) => {
-            console.info(file);
-        });
     });
 }
 async function moveFile(oldPath, newPath) {
@@ -17108,6 +17105,9 @@ async function moveFile(oldPath, newPath) {
     }
     exec(`mv ${oldPath} ${newPath}`, (_error, _stdout, _stderr) => {
         console.log(_error);
+        fs.readdirSync(build_path()).forEach((file) => {
+            console.info(file);
+        });
     });
 }
 async function run() {

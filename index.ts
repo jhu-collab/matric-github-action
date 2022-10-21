@@ -49,9 +49,6 @@ async function cloneRepo(repoName: string, url: string): Promise<void> {
           path.join(directory, 'source'),
         );
       }
-      fs.readdirSync(build_path()).forEach((file: any) => {
-        console.info(file);
-      });
     },
   );
 }
@@ -67,6 +64,9 @@ async function moveFile(oldPath: string, newPath: string): Promise<void> {
     `mv ${oldPath} ${newPath}`,
     (_error: any, _stdout: any, _stderr: any) => {
       console.log(_error);
+      fs.readdirSync(build_path()).forEach((file: any) => {
+        console.info(file);
+      });
     },
   );
 }
