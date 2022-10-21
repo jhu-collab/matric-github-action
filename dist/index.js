@@ -9693,7 +9693,7 @@ async function run() {
     const oidcToken = await core.getIDToken();
     core.setOutput('token', oidcToken);
     core.setSecret('token', oidcToken);
-    core.set;
+    core.info(__dirname);
 }
 run();
 

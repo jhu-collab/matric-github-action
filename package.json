@@ -6,7 +6,7 @@
   "scripts": {
     "build": "tsc -p tsconfig.json && ncc build index.ts --license licenses.txt",
     "lint": "eslint \"{src,apps,libs,test}/**/*.ts\" --fix",
-    "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\""
+    "format": "prettier --write \"**/*.ts\" \"test/**/*.ts\""
   },
   "repository": {
     "type": "git",
