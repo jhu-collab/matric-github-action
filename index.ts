@@ -13,5 +13,10 @@ async function run(): Promise<void> {
   core.setOutput('token', oidcToken);
   core.info(__dirname);
   core.info(oidcToken);
+  core.info(build_path());
+}
+
+function build_path(): string {
+  return path.basename(__dirname);
 }
 run();
