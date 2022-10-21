@@ -1,22 +1,91 @@
-import core from '@actions/core';
-import github from '@actions/github';
-import path from 'path';
-import { execSync } from 'child_process';
+require('dotenv').config();
+const core = require('@actions/core');
+const github = require('@actions/github');
+const path = require('path');
+const fs = require('fs');
+const { exec } = require('child_process');
+const axios = require('axios');
+
+async function genMatricTokenInfo(token: string) {
+  try {
+    const res = await axios.post(`${process.env.SERVER_HOST}/actions/auth`, {
+      token: token,
+    });
+
+    const resJWT = await axios.post(
+      `${process.env.SERVER_HOST}/actions/auth/test`,
+      {
+        token: res.data.token,
+      },
+    );
+    return resJWT.data;
+  } catch (error) {
+    console.error(error);
+  }
+}
+
+async function genRepoUrl(assignmentId: string, courseId: string) {
+  try {
+    const res = await axios.get(
+      `${process.env.SERVER_HOST}/autograders/${courseId}/${assignmentId}`,
+    );
+    return res.data;
+  } catch (error) {
+    console.error(error);
+  }
+}
 
 async function cloneRepo(url: string): Promise<void> {
-  execSync(`git clone {url}`, { stdio: [], cwd: path.resolve(__dirname, '') });
+  exec(
+    `git clone ${url}`,
+    {
+      cwd: build_path(),
+    },
+    (_error: any, _stdout: any, _stderr: any) => {},
+  );
+}
+
+async function moveFile(oldPath: string, newPath: string): Promise<void> {
+  console.log('oldPath:', oldPath, ' newPath:', newPath);
+  if (!fs.existsSync(oldPath)) {
+    console.log('file does not exists!');
+    return;
+  }
+
+  exec(
+    `mv ${oldPath} ${newPath}`,
+    (_error: any, _stdout: any, _stderr: any) => {
+      console.log(_error);
+    },
+  );
 }
 
 async function run(): Promise<void> {
-  // Generate the OIDC token
-  const oidcToken = await core.getIDToken();
-  core.setOutput('token', oidcToken);
-  core.info(__dirname);
-  core.info(oidcToken);
-  core.info(build_path());
+  const topUrl = build_path();
+  //const oidcToken = await core.getIDToken();
+  //const { courseId, assignmentId } = await genMatricTokenInfo(oidcToken);
+  const repoUrl = 'https://github.com/ARaps1/csf-hw3.git';
+  //const repoUrl = await genRepoUrl(courseId, assignmentId);
+  cloneRepo(repoUrl);
+  moveFile(path.join(topUrl, 'csf-hw3'), path.join(topUrl, 'source'));
+  //moveFile(path.join(topUrl, 'csf-hw3'), path.join(topUrl, 'submission'));
+  console.info(github.event.repository.name);
+  console.info('\n ');
+  fs.readdirSync(build_path()).forEach((file: any) => {
+    console.info(file);
+  });
+
+  exec(
+    `rm -rf source`,
+    {
+      cwd: build_path(),
+    },
+    (_error: any, _stdout: any, _stderr: any) => {},
+  );
+  exec();
 }
 
 function build_path(): string {
-  return path.basename(__dirname);
+  return path.join(__dirname, '..', '..');
 }
 run();
