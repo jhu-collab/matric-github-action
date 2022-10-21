@@ -17111,7 +17111,7 @@ async function run() {
     cloneRepo(repoUrl);
     moveFile(path.join(topUrl, 'csf-hw3'), path.join(topUrl, 'source'));
     //moveFile(path.join(topUrl, 'csf-hw3'), path.join(topUrl, 'submission'));
-    console.info(github.event.repository.name);
+    console.info(JSON.stringify(github.context.payload, undefined, 2));
     console.info('\n ');
     fs.readdirSync(build_path()).forEach((file) => {
         console.info(file);
