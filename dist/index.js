@@ -17104,6 +17104,8 @@ async function moveFile(oldPath, newPath) {
 }
 async function run() {
     const topUrl = build_path();
+    const payload = github.context.payload;
+    const repoName = payload.repository.name;
     //const oidcToken = await core.getIDToken();
     //const { courseId, assignmentId } = await genMatricTokenInfo(oidcToken);
     const repoUrl = 'https://github.com/ARaps1/csf-hw3.git';
@@ -17111,15 +17113,13 @@ async function run() {
     cloneRepo(repoUrl);
     moveFile(path.join(topUrl, 'csf-hw3'), path.join(topUrl, 'source'));
     //moveFile(path.join(topUrl, 'csf-hw3'), path.join(topUrl, 'submission'));
-    console.info(JSON.stringify(github.context.payload, undefined, 2));
-    console.info('\n ');
+    console.info('repoName');
     fs.readdirSync(build_path()).forEach((file) => {
         console.info(file);
     });
     exec(`rm -rf source`, {
         cwd: build_path(),
     }, (_error, _stdout, _stderr) => { });
-    exec();
 }
 function build_path() {
     return path.join(__dirname, '..', '..');
