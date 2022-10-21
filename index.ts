@@ -35,13 +35,21 @@ async function genRepoUrl(assignmentId: string, courseId: string) {
   }
 }
 
-async function cloneRepo(url: string): Promise<void> {
+async function cloneRepo(repoName: string, url: string): Promise<void> {
+  const directory = build_path();
   exec(
     `git clone ${url}`,
     {
-      cwd: build_path(),
+      cwd: directory,
     },
-    (_error: any, _stdout: any, _stderr: any) => {},
+    (error: any, _stdout: any, _stderr: any) => {
+      if (!error) {
+        moveFile(
+          path.join(directory, repoName),
+          path.join(directory, 'source'),
+        );
+      }
+    },
   );
 }
 
@@ -68,22 +76,13 @@ async function run(): Promise<void> {
   //const { courseId, assignmentId } = await genMatricTokenInfo(oidcToken);
   const repoUrl = 'https://github.com/ARaps1/csf-hw3.git';
   //const repoUrl = await genRepoUrl(courseId, assignmentId);
-  cloneRepo(repoUrl);
-  moveFile(path.join(topUrl, 'csf-hw3'), path.join(topUrl, 'source'));
+  cloneRepo(repoName, repoUrl);
+
   //moveFile(path.join(topUrl, 'csf-hw3'), path.join(topUrl, 'submission'));
 
-  console.info(repoName);
   fs.readdirSync(build_path()).forEach((file: any) => {
     console.info(file);
   });
-
-  exec(
-    `rm -rf source`,
-    {
-      cwd: build_path(),
-    },
-    (_error: any, _stdout: any, _stderr: any) => {},
-  );
 }
 
 function build_path(): string {
