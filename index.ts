@@ -43,12 +43,7 @@ async function cloneRepo(repoName: string, url: string): Promise<void> {
       cwd: directory,
     },
     (error: any, _stdout: any, _stderr: any) => {
-      if (!error) {
-        moveFile(
-          path.join(directory, repoName),
-          path.join(directory, 'source'),
-        );
-      }
+      moveFile(path.join(directory, repoName), path.join(directory, 'source'));
     },
   );
 }

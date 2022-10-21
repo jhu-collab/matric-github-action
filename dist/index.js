@@ -17092,9 +17092,7 @@ async function cloneRepo(repoName, url) {
     exec(`git clone ${url}`, {
         cwd: directory,
     }, (error, _stdout, _stderr) => {
-        if (!error) {
-            moveFile(path.join(directory, repoName), path.join(directory, 'source'));
-        }
+        moveFile(path.join(directory, repoName), path.join(directory, 'source'));
     });
 }
 async function moveFile(oldPath, newPath) {
