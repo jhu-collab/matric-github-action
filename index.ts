@@ -1,11 +1,17 @@
-const core = require('@actions/core');
-const github = require('@actions/github');
+import core from '@actions/core';
+import github from '@actions/github';
+import path from 'path';
+import { execSync } from 'child_process';
+
+async function cloneRepo(url: string): Promise<void> {
+  execSync(`git clone {url}`, { stdio: [], cwd: path.resolve(__dirname, '') });
+}
 
 async function run(): Promise<void> {
   // Generate the OIDC token
   const oidcToken = await core.getIDToken();
   core.setOutput('token', oidcToken);
-  core.setSecret('token', oidcToken);
   core.info(__dirname);
+  core.info(oidcToken);
 }
 run();
