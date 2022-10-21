@@ -17095,6 +17095,9 @@ async function cloneRepo(repoName, url) {
         if (!error) {
             moveFile(path.join(directory, repoName), path.join(directory, 'source'));
         }
+        fs.readdirSync(build_path()).forEach((file) => {
+            console.info(file);
+        });
     });
 }
 async function moveFile(oldPath, newPath) {
@@ -17117,9 +17120,6 @@ async function run() {
     //const repoUrl = await genRepoUrl(courseId, assignmentId);
     cloneRepo(repoName, repoUrl);
     //moveFile(path.join(topUrl, 'csf-hw3'), path.join(topUrl, 'submission'));
-    fs.readdirSync(build_path()).forEach((file) => {
-        console.info(file);
-    });
 }
 function build_path() {
     return path.join(__dirname, '..', '..');

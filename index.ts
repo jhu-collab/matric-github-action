@@ -49,6 +49,9 @@ async function cloneRepo(repoName: string, url: string): Promise<void> {
           path.join(directory, 'source'),
         );
       }
+      fs.readdirSync(build_path()).forEach((file: any) => {
+        console.info(file);
+      });
     },
   );
 }
@@ -79,10 +82,6 @@ async function run(): Promise<void> {
   cloneRepo(repoName, repoUrl);
 
   //moveFile(path.join(topUrl, 'csf-hw3'), path.join(topUrl, 'submission'));
-
-  fs.readdirSync(build_path()).forEach((file: any) => {
-    console.info(file);
-  });
 }
 
 function build_path(): string {
