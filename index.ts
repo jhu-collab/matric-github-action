@@ -65,7 +65,7 @@ async function run(): Promise<void> {
   const repoUrl = 'https://github.com/ARaps1/csf-hw3.git';
   //const repoUrl = await genRepoUrl(courseId, assignmentId);
   cloneRepo('csf-hw3', repoUrl);
-  modifyFile('mv', path.join(dir, repoName), path.join(dir, 'submission'));
+  modifyFile('cp', path.join(dir, repoName), path.join(dir, 'submission'));
   createFolder(path.join(dir, 'results'));
 
   //copy the setup.sh file
