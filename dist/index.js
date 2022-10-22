@@ -13074,6 +13074,58 @@ function wrappy (fn, cb) {
 
 /***/ }),
 
+/***/ 9637:
+/***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
+
+"use strict";
+
+const fs = __nccwpck_require__(7147);
+const { exec, execFile } = __nccwpck_require__(2081);
+async function modifyFile(cmd, oldPath, newPath) {
+    if (!fs.existsSync(oldPath)) {
+        console.log(`${oldPath} does not exists!`);
+        return;
+    }
+    exec(`${cmd} ${oldPath} ${newPath}`, (_error, _stdout, _stderr) => { });
+}
+async function writeOutputToFile(stdout, outputPath) {
+    fs.open(outputPath, 'w', (error, fd) => {
+        if (error != null) {
+            console.error(`error: ${error}`);
+            return;
+        }
+        fs.write(fd, stdout, (error) => {
+            if (error != null) {
+                console.error(`error: ${error}`);
+            }
+        });
+    });
+}
+async function executeFile(filePath, outputFilePath) {
+    if (!fs.existsSync(filePath)) {
+        console.log('file does not exists!');
+        return;
+    }
+    execFile(filePath, (error, stdout, stderr) => {
+        if (error != null) {
+            console.error(`error: ${error}`);
+            return;
+        }
+        if (stderr) {
+            console.error(`stderr: ${stderr}`);
+            return;
+        }
+        writeOutputToFile(stdout, outputFilePath);
+    });
+}
+async function createFolder(path) {
+    exec(`mkdir ${path}`, (_error, _stdout, _stderr) => { });
+}
+module.exports = { modifyFile, executeFile, writeOutputToFile, createFolder };
+
+
+/***/ }),
+
 /***/ 2877:
 /***/ ((module) => {
 
@@ -17056,14 +17108,16 @@ var __webpack_exports__ = {};
 // This entry need to be wrapped in an IIFE because it need to be in strict mode.
 (() => {
 "use strict";
+var exports = __webpack_exports__;
 
+Object.defineProperty(exports, "__esModule", ({ value: true }));
 (__nccwpck_require__(2437).config)();
 const core = __nccwpck_require__(2186);
 const github = __nccwpck_require__(5438);
 const path = __nccwpck_require__(1017);
-const fs = __nccwpck_require__(7147);
 const { exec } = __nccwpck_require__(2081);
 const axios = __nccwpck_require__(8757);
+const { modifyFile, createFolder, executeFile, } = __nccwpck_require__(9637);
 async function genMatricTokenInfo(token) {
     try {
         const res = await axios.post(`${process.env.SERVER_HOST}/actions/auth`, {
@@ -17092,32 +17146,29 @@ async function cloneRepo(repoName, url) {
     exec(`git clone ${url}`, {
         cwd: directory,
     }, (error, _stdout, _stderr) => {
-        moveFile(path.join(directory, repoName), path.join(directory, 'source'));
-    });
-}
-async function moveFile(oldPath, newPath) {
-    console.log('oldPath:', oldPath, ' newPath:', newPath);
-    if (!fs.existsSync(oldPath)) {
-        console.log('file does not exists!');
-        return;
-    }
-    exec(`mv ${oldPath} ${newPath}`, (_error, _stdout, _stderr) => {
-        console.log(_error);
-        fs.readdirSync(build_path()).forEach((file) => {
-            console.info(file);
-        });
+        modifyFile('mv', path.join(directory, repoName), path.join(directory, 'source'));
     });
 }
 async function run() {
-    const topUrl = build_path();
+    const dir = build_path();
     const payload = github.context.payload;
     const repoName = payload.repository.name;
-    //const oidcToken = await core.getIDToken();
+    const oidcToken = await core.getIDToken();
     //const { courseId, assignmentId } = await genMatricTokenInfo(oidcToken);
     const repoUrl = 'https://github.com/ARaps1/csf-hw3.git';
     //const repoUrl = await genRepoUrl(courseId, assignmentId);
-    cloneRepo(repoName, repoUrl);
-    //moveFile(path.join(topUrl, 'csf-hw3'), path.join(topUrl, 'submission'));
+    cloneRepo('csf-hw3', repoUrl);
+    modifyFile('mv', path.join(dir, repoName), path.join(dir, 'submission'));
+    createFolder(path.join(dir, 'results'));
+    //copy the setup.sh file
+    modifyFile('cp', path.join(dir, 'source', 'setup.sh'), path.join(dir, 'setup.sh'));
+    // Execute the setup.sh file if it exists and redirect output
+    executeFile(path.join(dir, 'script.sh'), path.join(dir, 'setup.logs.txt'));
+    // copy the run_autograder file
+    modifyFile('cp', path.join(dir, 'source', 'setup.sh'), path.join(dir, 'setup.sh'));
+    //Execute the run_autograder file
+    executeFile(path.join(dir, 'run_autograder'), path.join(dir, 'run_autograder.logs.txt'));
+    // Verify that there is a file in results/results.json
 }
 function build_path() {
     return path.join(__dirname, '..', '..');
