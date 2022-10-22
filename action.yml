@@ -1,27 +1,5 @@
 name: 'Autograder'
 description: 'Autograde a repo submission and return results'
-outputs:
-  token: # id of output
-    description: 'ID token generated from OIDC'
 runs:
   using: 'node16'
   main: 'dist/index.js'
-jobs:
-  clone-repo:
-    runs-on: ubuntu-latest
-    steps:
-      - name: 'Clone repo'
-        run: |
-          echo "hello"
-        shell: bash
-  create-results-folder:
-    runs-on: ubuntu-latest
-    steps:
-      - name: 'Create folder'
-        run: |
-          FILE=/results
-          if [ -f "$FILE" ]; then
-              echo "$FILE exists."
-          else 
-              echo "$FILE does not exist."
-          fi
