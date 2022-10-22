@@ -23,7 +23,3 @@ jobs:
       - name: tests
         id: autograder
         uses: ./
-      
-      - name: Access cloned repository content
-        run: |
-          echo "Ran the action ${{ steps.autograder.token }}"
