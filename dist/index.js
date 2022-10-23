@@ -24471,10 +24471,10 @@ const { validateJSON, readJSONFile } = __nccwpck_require__(9108);
 const { modifyFile, createFolder, executeFile, fileExists, build_path, } = __nccwpck_require__(9637);
 async function genMatricTokenInfo(token) {
     try {
-        const res = await axios.post(`${process.env.SERVER_HOST}/actions/auth`, {
+        const res = await axios.post(`${process.env.MATRIC_BACKEND_URL}/actions/auth`, {
             token: token,
         });
-        const resJWT = await axios.post(`${process.env.SERVER_HOST}/actions/auth/test`, {
+        const resJWT = await axios.post(`http://localhost:3000/actions/auth/test`, {
             token: res.data.token,
         });
         return resJWT.data;
@@ -24485,7 +24485,7 @@ async function genMatricTokenInfo(token) {
 }
 async function genRepoUrl(assignmentId, courseId) {
     try {
-        const res = await axios.get(`${process.env.SERVER_HOST}/autograders/${courseId}/${assignmentId}`);
+        const res = await axios.get(`http://localhost:3000/autograders/${courseId}/${assignmentId}`);
         return res.data;
     }
     catch (error) {
@@ -24533,7 +24533,7 @@ async function sendResults(path, actor, commitId, repoName) {
     try {
         const resultsJSON = readJSONFile(path);
         const payload = { repoName, actor, commitId, results: resultsJSON };
-        await axios.post(`${process.env.SERVER_HOST}/submission/`, payload);
+        await axios.post(`http://localhost:3000/submission/`, payload);
     }
     catch (error) {
         console.error(error);

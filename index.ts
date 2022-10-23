@@ -21,16 +21,16 @@ const {
 
 async function genMatricTokenInfo(token: string) {
   try {
-    const res = await axios.post(`${process.env.SERVER_HOST}/actions/auth`, {
-      token: token,
-    });
-
-    const resJWT = await axios.post(
-      `${process.env.SERVER_HOST}/actions/auth/test`,
+    const res = await axios.post(
+      `${process.env.MATRIC_BACKEND_URL}/actions/auth`,
       {
-        token: res.data.token,
+        token: token,
       },
     );
+
+    const resJWT = await axios.post(`http://localhost:3000/actions/auth/test`, {
+      token: res.data.token,
+    });
     return resJWT.data;
   } catch (error) {
     console.error(error);
@@ -40,7 +40,7 @@ async function genMatricTokenInfo(token: string) {
 async function genRepoUrl(assignmentId: string, courseId: string) {
   try {
     const res = await axios.get(
-      `${process.env.SERVER_HOST}/autograders/${courseId}/${assignmentId}`,
+      `http://localhost:3000/autograders/${courseId}/${assignmentId}`,
     );
     return res.data;
   } catch (error) {
@@ -127,7 +127,7 @@ async function sendResults(
   try {
     const resultsJSON = readJSONFile(path);
     const payload = { repoName, actor, commitId, results: resultsJSON };
-    await axios.post(`${process.env.SERVER_HOST}/submission/`, payload);
+    await axios.post(`http://localhost:3000/submission/`, payload);
   } catch (error) {
     console.error(error);
   }
