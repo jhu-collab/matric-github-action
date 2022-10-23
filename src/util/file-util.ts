@@ -1,8 +1,8 @@
-const fs = require('fs');
-const path = require('path');
-const { exec, execFile } = require('child_process');
+import * as fs from 'fs';
+import path from 'path';
+import { exec, execFile } from 'child_process';
 
-async function modifyFile(
+export async function modifyFile(
   cmd: string,
   oldPath: string,
   newPath: string,
@@ -26,7 +26,7 @@ async function modifyFile(
   });
 }
 
-async function writeOutputToFile(
+export async function writeOutputToFile(
   stdout: string,
   outputPath: string,
 ): Promise<boolean> {
@@ -36,8 +36,8 @@ async function writeOutputToFile(
         reject(`error: ${error}`);
       }
 
-      fs.write(fd, stdout, (error: Error) => {
-        if (error != null) {
+      fs.write(fd, stdout, (error: unknown) => {
+        if (error) {
           reject(`error: ${error}`);
         }
         resolve(true);
@@ -46,7 +46,7 @@ async function writeOutputToFile(
   });
 }
 
-async function executeFile(
+export async function executeFile(
   filePath: string,
   outputFilePath: string,
 ): Promise<boolean> {
@@ -66,23 +66,14 @@ async function executeFile(
   });
 }
 
-async function createFolder(path: string): Promise<void> {
+export async function createFolder(path: string): Promise<void> {
   exec(`mkdir ${path}`, (_error: any, _stdout: any, _stderr: any) => {});
 }
 
-function fileExists(path: string): boolean {
+export function fileExists(path: string): boolean {
   return fs.existsSync(path);
 }
 
-function build_path(): string {
+export function build_path(): string {
   return path.join(__dirname, '..', '..');
 }
-
-module.exports = {
-  modifyFile,
-  executeFile,
-  writeOutputToFile,
-  createFolder,
-  build_path,
-  fileExists,
-};
