@@ -6,7 +6,7 @@ async function modifyFile(
   oldPath: string,
   newPath: string,
 ): Promise<void> {
-  if (!fs.existsSync(oldPath)) {
+  if (!fileExists(oldPath)) {
     console.log(`${oldPath} does not exists!`);
     return;
   }
@@ -36,7 +36,7 @@ async function executeFile(
   filePath: string,
   outputFilePath: string,
 ): Promise<void> {
-  if (!fs.existsSync(filePath)) {
+  if (!fileExists(filePath)) {
     console.log('file does not exists!');
     return;
   }
@@ -58,6 +58,10 @@ async function executeFile(
 
 async function createFolder(path: string): Promise<void> {
   exec(`mkdir ${path}`, (_error: any, _stdout: any, _stderr: any) => {});
+}
+
+function fileExists(path: string): boolean {
+  return !fs.existsSync(path);
 }
 
 module.exports = { modifyFile, executeFile, writeOutputToFile, createFolder };

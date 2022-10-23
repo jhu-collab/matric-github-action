@@ -8,6 +8,7 @@ const {
   modifyFile,
   createFolder,
   executeFile,
+  fileExists,
 } = require('./src/util/file-util');
 
 async function genMatricTokenInfo(token: string) {
@@ -56,6 +57,12 @@ async function cloneRepo(repoName: string, url: string): Promise<void> {
   );
 }
 
+async function validateResults(path: string): Promise<void> {
+  if (!fileExists(path)) {
+    return;
+  }
+}
+
 async function run(): Promise<void> {
   const dir = build_path();
   const payload = github.context.payload;
@@ -93,6 +100,7 @@ async function run(): Promise<void> {
   );
 
   // Verify that there is a file in results/results.json
+  validateResults(path.join(dir, 'results/results.json'));
 }
 
 function build_path(): string {
