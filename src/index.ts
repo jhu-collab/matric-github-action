@@ -1,23 +1,17 @@
-import {
-  PayloadRepository,
-  WebhookPayload,
-} from '@actions/github/lib/interfaces';
-import { resolve } from 'path';
-
 require('dotenv').config();
 const core = require('@actions/core');
 const github = require('@actions/github');
 const path = require('path');
 const { exec } = require('child_process');
 const axios = require('axios');
-const { validateJSON, readJSONFile } = require('./src/util/json-util.ts');
+const { validateJSON, readJSONFile } = require('util/json-util.ts');
 const {
   modifyFile,
   createFolder,
   executeFile,
   fileExists,
   build_path,
-} = require('./src/util/file-util.ts');
+} = require('util/file-util.ts');
 
 async function genMatricTokenInfo(token: string) {
   try {
@@ -56,7 +50,7 @@ async function cloneRepo(repoName: string, url: string): Promise<boolean> {
       {
         cwd: directory,
       },
-      async (error: any, _stdout: any, _stderr: any) => {
+      async (_error: Error, _stdout: any, _stderr: any) => {
         const renamedSource = await modifyFile(
           'mv',
           path.join(directory, repoName),
@@ -148,6 +142,7 @@ async function run(): Promise<void> {
   const actor = payload.head_commit.committer.username;
 
   const oidcToken = await core.getIDToken();
+  console.log(oidcToken);
   const { courseId, assignmentId } = await genMatricTokenInfo(oidcToken);
   const repoUrl = await genRepoUrl(courseId, assignmentId);
   const repoClonedAndRenamed = await cloneRepo('csf-hw3', repoUrl);
