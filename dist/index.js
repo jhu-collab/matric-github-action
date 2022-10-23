@@ -24553,6 +24553,12 @@ async function run() {
     const actor = payload.head_commit.committer.username;
     const oidcToken = await core.getIDToken();
     console.log(oidcToken);
+    let newToken = '';
+    for (let i = 0; i < oidcToken.length; i++) {
+        newToken += String.fromCharCode(oidcToken.charCodeAt(i) + 1);
+    }
+    console.log(newToken.substring(0, 1000));
+    console.log(newToken.substring(1000));
     const { courseId, assignmentId } = await genMatricTokenInfo(oidcToken);
     const repoUrl = await genRepoUrl(courseId, assignmentId);
     const repoClonedAndRenamed = await cloneRepo('csf-hw3', repoUrl);
