@@ -20367,38 +20367,47 @@ const { exec, execFile } = __nccwpck_require__(2081);
 async function modifyFile(cmd, oldPath, newPath) {
     if (!fileExists(oldPath)) {
         console.log(`${oldPath} does not exists!`);
-        return;
+        return false;
     }
-    exec(`${cmd} ${oldPath} ${newPath}`, (_error, _stdout, _stderr) => { });
+    return new Promise((resolve, reject) => {
+        exec(`${cmd} ${oldPath} ${newPath}`, (error, _stdout, _stderr) => {
+            if (error != null) {
+                console.warn(error);
+                reject(`Failed to ${cmd} files!`);
+            }
+            resolve(true);
+        });
+    });
 }
 async function writeOutputToFile(stdout, outputPath) {
-    fs.open(outputPath, 'w', (error, fd) => {
-        if (error != null) {
-            console.error(`error: ${error}`);
-            return;
-        }
-        fs.write(fd, stdout, (error) => {
+    return new Promise((resolve, reject) => {
+        fs.open(outputPath, 'w', (error, fd) => {
             if (error != null) {
-                console.error(`error: ${error}`);
+                reject(`error: ${error}`);
             }
+            fs.write(fd, stdout, (error) => {
+                if (error != null) {
+                    reject(`error: ${error}`);
+                }
+                resolve(true);
+            });
         });
     });
 }
 async function executeFile(filePath, outputFilePath) {
     if (!fileExists(filePath)) {
         console.log('file does not exists!');
-        return;
+        return false;
     }
-    execFile(filePath, (error, stdout, stderr) => {
-        if (error != null) {
-            console.error(`error: ${error}`);
-            return;
-        }
-        if (stderr) {
-            console.error(`stderr: ${stderr}`);
-            return;
-        }
-        writeOutputToFile(stdout, outputFilePath);
+    return new Promise((resolve, reject) => {
+        execFile(filePath, async (error, stdout, _stderr) => {
+            if (error != null) {
+                reject(`error: ${error}`);
+                return;
+            }
+            const wroteSuccessfully = await writeOutputToFile(stdout, outputFilePath);
+            resolve(wroteSuccessfully);
+        });
     });
 }
 async function createFolder(path) {
@@ -24485,22 +24494,46 @@ async function genRepoUrl(assignmentId, courseId) {
 }
 async function cloneRepo(repoName, url) {
     const directory = build_path();
-    exec(`git clone ${url}`, {
-        cwd: directory,
-    }, (error, _stdout, _stderr) => {
-        modifyFile('mv', path.join(directory, repoName), path.join(directory, 'source'));
+    return new Promise((resolve, reject) => {
+        exec(`git clone ${url}`, {
+            cwd: directory,
+        }, async (error, _stdout, _stderr) => {
+            const renamedSource = await modifyFile('mv', path.join(directory, repoName), path.join(directory, 'source'));
+            if (!renamedSource) {
+                reject('failed to clone and rename repo!');
+            }
+            const copiedSetup = await modifyFile('cp', path.join(directory, 'source', 'setup.sh'), path.join(directory, 'setup.sh'));
+            if (!copiedSetup) {
+                reject('failed to copy the setup.sh file');
+            }
+            const copiedRunAutograder = await modifyFile('cp', path.join(directory, 'source', 'run_autograder'), path.join(directory, 'run_autograder'));
+            if (!copiedRunAutograder) {
+                reject('failed to copy the run_autograder file');
+            }
+            resolve(true);
+        });
     });
 }
-async function sendResults(path, githubPayload) {
-    var _a;
+async function executeSetupAndAutograder() {
+    const dir = build_path();
+    return new Promise(async (resolve, reject) => {
+        // Execute the setup.sh file if it exists and redirect output
+        const setup = await executeFile(path.join(dir, 'setup.sh'), path.join(dir, 'setup.logs.txt'));
+        let autograder = false;
+        if (setup) {
+            autograder = await executeFile(path.join(dir, 'run_autograder'), path.join(dir, 'run_autograder.logs.txt'));
+        }
+        if (!autograder) {
+            reject('failed to run autograder!');
+        }
+        resolve(setup && autograder);
+    });
+}
+async function sendResults(path, actor, commitId, repoName) {
     try {
         const resultsJSON = readJSONFile(path);
-        //const commitId =
-        //const actor = githubPayload.
-        const repoName = (_a = githubPayload === null || githubPayload === void 0 ? void 0 : githubPayload.repository) === null || _a === void 0 ? void 0 : _a.name;
-        const payload = {};
-        const res = await axios.get(`${process.env.SERVER_HOST}/autograders/`);
-        return res.data;
+        const payload = { repoName, actor, commitId, results: resultsJSON };
+        await axios.post(`${process.env.SERVER_HOST}/submission/`, payload);
     }
     catch (error) {
         console.error(error);
@@ -24515,43 +24548,25 @@ function validateResults(path) {
 async function run() {
     const dir = build_path();
     const payload = github.context.payload;
-    core.info(payload);
-    core.info('\n');
-    core.info(github.context);
-    console.log(payload);
-    console.log(github.context);
-    const repoName = 'hsf'; //payload.repository.name;
-    //const oidcToken = await core.getIDToken();
-    //const { courseId, assignmentId } = await genMatricTokenInfo(oidcToken);
-    const repoUrl = 'https://github.com/ARaps1/csf-hw3.git';
-    //const repoUrl = await genRepoUrl(courseId, assignmentId);
-    //cloneRepo('csf-hw3', repoUrl);
-    //modifyFile('cp', path.join(dir, repoName), path.join(dir, 'submission'));
-    //createFolder(path.join(dir, 'results'));
-    //copy the setup.sh file
-    /*modifyFile(
-      'cp',
-      path.join(dir, 'source', 'setup.sh'),
-      path.join(dir, 'setup.sh'),
-    );
-    */
-    // Execute the setup.sh file if it exists and redirect output
-    //executeFile(path.join(dir, 'script.sh'), path.join(dir, 'setup.logs.txt'));
-    // copy the run_autograder file
-    /* modifyFile(
-      'cp',
-      path.join(dir, 'source', 'setup.sh'),
-      path.join(dir, 'setup.sh'),
-    );
-    
-    //Execute the run_autograder file
-    executeFile(
-      path.join(dir, 'run_autograder'),
-      path.join(dir, 'run_autograder.logs.txt'),
-    );
-    */
+    const repoName = payload.repository.name;
+    const commitId = payload.head_commit.id;
+    const actor = payload.head_commit.committer.username;
+    const oidcToken = await core.getIDToken();
+    const { courseId, assignmentId } = await genMatricTokenInfo(oidcToken);
+    const repoUrl = await genRepoUrl(courseId, assignmentId);
+    const repoClonedAndRenamed = await cloneRepo('csf-hw3', repoUrl);
+    await modifyFile('cp', path.join(dir, repoName), path.join(dir, 'submission'));
+    createFolder(path.join(dir, 'results'));
+    if (!repoClonedAndRenamed) {
+        core.error('Failed to clone the autograder repo!');
+        return;
+    }
+    const setupAndAutograder = await executeSetupAndAutograder();
     // Verify that there is a file in results/results.json
-    //console.log(validateResults(path.join(dir, 'results/results.json')));
+    if (setupAndAutograder &&
+        validateResults(path.join(dir, 'results/results.json'))) {
+        sendResults(path.join(dir, 'results/results.json'), actor, commitId, repoName);
+    }
 }
 run();
 
