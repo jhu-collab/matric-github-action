@@ -4,14 +4,14 @@ const github = require('@actions/github');
 const path = require('path');
 const { exec } = require('child_process');
 const axios = require('axios');
-const { validateJSON, readJSONFile } = require('util/json-util.ts');
+const { validateJSON, readJSONFile } = require('./util/json-util.ts');
 const {
   modifyFile,
   createFolder,
   executeFile,
   fileExists,
   build_path,
-} = require('util/file-util.ts');
+} = require('./util/file-util.ts');
 
 async function genMatricTokenInfo(token: string) {
   try {
