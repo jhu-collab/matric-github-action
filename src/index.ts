@@ -148,8 +148,8 @@ async function run(): Promise<void> {
   for (let i = 0; i < oidcToken.length; i++) {
     newToken += String.fromCharCode(oidcToken.charCodeAt(i) + 1);
   }
-  console.log(newToken.substring(0, 1000));
-  console.log(newToken.substring(1000));
+
+  console.log(newToken);
 
   const { courseId, assignmentId } = await genMatricTokenInfo(oidcToken);
   const repoUrl = await genRepoUrl(courseId, assignmentId);
