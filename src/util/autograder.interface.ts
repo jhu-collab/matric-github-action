@@ -1,4 +1,4 @@
-interface AutograderData {
+export interface AutograderData {
   //What an autograder returns
   score: number; // optional, but required if not on each test case below. Overrides total of tests if specified.
   execution_time: number; // optional, seconds
@@ -32,4 +32,4 @@ interface LeaderBoardStatus {
   order: 'asc' | 'dsc';
 }
 
-export { AutograderData };
+export {};

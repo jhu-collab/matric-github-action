@@ -1,4 +1,5 @@
 const fs = require('fs');
+const path = require('path');
 const { exec, execFile } = require('child_process');
 
 async function modifyFile(
@@ -61,7 +62,18 @@ async function createFolder(path: string): Promise<void> {
 }
 
 function fileExists(path: string): boolean {
-  return !fs.existsSync(path);
+  return fs.existsSync(path);
 }
 
-module.exports = { modifyFile, executeFile, writeOutputToFile, createFolder };
+function build_path(): string {
+  return path.join(__dirname, '..', '..');
+}
+
+module.exports = {
+  modifyFile,
+  executeFile,
+  writeOutputToFile,
+  createFolder,
+  build_path,
+  fileExists,
+};
