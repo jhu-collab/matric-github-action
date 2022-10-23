@@ -1,7 +1,7 @@
 require('dotenv').config();
-import core from '@actions/core';
-import github from '@actions/github';
-import path from 'path';
+import core = require('@actions/core');
+import github = require('@actions/github');
+import path = require('path');
 import { exec } from 'child_process';
 import axios from 'axios';
 const { validateJSON, readJSONFile } = require('./util/json-util.ts');
