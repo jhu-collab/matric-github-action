@@ -1,9 +1,9 @@
 require('dotenv').config();
-const core = require('@actions/core');
-const github = require('@actions/github');
-const path = require('path');
-const { exec } = require('child_process');
-const axios = require('axios');
+import core from '@actions/core';
+import github from '@actions/github';
+import path from 'path';
+import { exec } from 'child_process';
+import axios from 'axios';
 const { validateJSON, readJSONFile } = require('./util/json-util.ts');
 const {
   modifyFile,
@@ -50,7 +50,7 @@ async function cloneRepo(repoName: string, url: string): Promise<boolean> {
       {
         cwd: directory,
       },
-      async (_error: Error, _stdout: any, _stderr: any) => {
+      async (_error: any, _stdout: any, _stderr: any) => {
         const renamedSource = await modifyFile(
           'mv',
           path.join(directory, repoName),
@@ -137,20 +137,10 @@ function validateResults(path: string): boolean {
 async function run(): Promise<void> {
   const dir = build_path();
   const payload = github.context.payload;
-  const repoName = payload.repository.name;
+  const repoName = payload.repository?.name ?? '';
   const commitId = payload.head_commit.id;
   const actor = payload.head_commit.committer.username;
-
   const oidcToken = await core.getIDToken();
-  console.log(oidcToken);
-
-  let newToken = '';
-  for (let i = 0; i < oidcToken.length; i++) {
-    newToken += String.fromCharCode(oidcToken.charCodeAt(i) + 1);
-  }
-
-  console.log(newToken);
-
   const { courseId, assignmentId } = await genMatricTokenInfo(oidcToken);
   const repoUrl = await genRepoUrl(courseId, assignmentId);
   const repoClonedAndRenamed = await cloneRepo('csf-hw3', repoUrl);
@@ -170,7 +160,6 @@ async function run(): Promise<void> {
 
   const setupAndAutograder = await executeSetupAndAutograder();
 
-  // Verify that there is a file in results/results.json
   if (
     setupAndAutograder &&
     validateResults(path.join(dir, 'results/results.json'))

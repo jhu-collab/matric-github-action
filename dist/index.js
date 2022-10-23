@@ -20356,62 +20356,221 @@ function wrappy (fn, cb) {
 
 /***/ }),
 
-/***/ 9637:
-/***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
+/***/ 6144:
+/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
 
 "use strict";
 
-const fs = __nccwpck_require__(7147);
-const path = __nccwpck_require__(1017);
-const { exec, execFile } = __nccwpck_require__(2081);
-async function modifyFile(cmd, oldPath, newPath) {
-    if (!fileExists(oldPath)) {
-        console.log(`${oldPath} does not exists!`);
-        return false;
-    }
-    return new Promise((resolve, reject) => {
-        exec(`${cmd} ${oldPath} ${newPath}`, (error, _stdout, _stderr) => {
-            if (error != null) {
-                console.warn(error);
-                reject(`Failed to ${cmd} files!`);
-            }
-            resolve(true);
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+(__nccwpck_require__(2437).config)();
+const core_1 = __importDefault(__nccwpck_require__(2186));
+const github_1 = __importDefault(__nccwpck_require__(5438));
+const path_1 = __importDefault(__nccwpck_require__(1017));
+const child_process_1 = __nccwpck_require__(2081);
+const axios_1 = __importDefault(__nccwpck_require__(8757));
+const { validateJSON, readJSONFile } = __nccwpck_require__(9108);
+const { modifyFile, createFolder, executeFile, fileExists, build_path, } = __nccwpck_require__(9637);
+function genMatricTokenInfo(token) {
+    return __awaiter(this, void 0, void 0, function* () {
+        try {
+            const res = yield axios_1.default.post(`${process.env.MATRIC_BACKEND_URL}/actions/auth`, {
+                token: token,
+            });
+            const resJWT = yield axios_1.default.post(`http://localhost:3000/actions/auth/test`, {
+                token: res.data.token,
+            });
+            return resJWT.data;
+        }
+        catch (error) {
+            console.error(error);
+        }
+    });
+}
+function genRepoUrl(assignmentId, courseId) {
+    return __awaiter(this, void 0, void 0, function* () {
+        try {
+            const res = yield axios_1.default.get(`http://localhost:3000/autograders/${courseId}/${assignmentId}`);
+            return res.data;
+        }
+        catch (error) {
+            console.error(error);
+        }
+    });
+}
+function cloneRepo(repoName, url) {
+    return __awaiter(this, void 0, void 0, function* () {
+        const directory = build_path();
+        return new Promise((resolve, reject) => {
+            (0, child_process_1.exec)(`git clone ${url}`, {
+                cwd: directory,
+            }, (_error, _stdout, _stderr) => __awaiter(this, void 0, void 0, function* () {
+                const renamedSource = yield modifyFile('mv', path_1.default.join(directory, repoName), path_1.default.join(directory, 'source'));
+                if (!renamedSource) {
+                    reject('failed to clone and rename repo!');
+                }
+                const copiedSetup = yield modifyFile('cp', path_1.default.join(directory, 'source', 'setup.sh'), path_1.default.join(directory, 'setup.sh'));
+                if (!copiedSetup) {
+                    reject('failed to copy the setup.sh file');
+                }
+                const copiedRunAutograder = yield modifyFile('cp', path_1.default.join(directory, 'source', 'run_autograder'), path_1.default.join(directory, 'run_autograder'));
+                if (!copiedRunAutograder) {
+                    reject('failed to copy the run_autograder file');
+                }
+                resolve(true);
+            }));
         });
     });
 }
-async function writeOutputToFile(stdout, outputPath) {
-    return new Promise((resolve, reject) => {
-        fs.open(outputPath, 'w', (error, fd) => {
-            if (error != null) {
-                reject(`error: ${error}`);
+function executeSetupAndAutograder() {
+    return __awaiter(this, void 0, void 0, function* () {
+        const dir = build_path();
+        return new Promise((resolve, reject) => __awaiter(this, void 0, void 0, function* () {
+            // Execute the setup.sh file if it exists and redirect output
+            const setup = yield executeFile(path_1.default.join(dir, 'setup.sh'), path_1.default.join(dir, 'setup.logs.txt'));
+            let autograder = false;
+            if (setup) {
+                autograder = yield executeFile(path_1.default.join(dir, 'run_autograder'), path_1.default.join(dir, 'run_autograder.logs.txt'));
             }
-            fs.write(fd, stdout, (error) => {
+            if (!autograder) {
+                reject('failed to run autograder!');
+            }
+            resolve(setup && autograder);
+        }));
+    });
+}
+function sendResults(path, actor, commitId, repoName) {
+    return __awaiter(this, void 0, void 0, function* () {
+        try {
+            const resultsJSON = readJSONFile(path);
+            const payload = { repoName, actor, commitId, results: resultsJSON };
+            yield axios_1.default.post(`http://localhost:3000/submission/`, payload);
+        }
+        catch (error) {
+            console.error(error);
+        }
+    });
+}
+function validateResults(path) {
+    if (!fileExists(path)) {
+        return false;
+    }
+    return validateJSON(path);
+}
+function run() {
+    var _a, _b;
+    return __awaiter(this, void 0, void 0, function* () {
+        const dir = build_path();
+        const payload = github_1.default.context.payload;
+        const repoName = (_b = (_a = payload.repository) === null || _a === void 0 ? void 0 : _a.name) !== null && _b !== void 0 ? _b : '';
+        const commitId = payload.head_commit.id;
+        const actor = payload.head_commit.committer.username;
+        const oidcToken = yield core_1.default.getIDToken();
+        const { courseId, assignmentId } = yield genMatricTokenInfo(oidcToken);
+        const repoUrl = yield genRepoUrl(courseId, assignmentId);
+        const repoClonedAndRenamed = yield cloneRepo('csf-hw3', repoUrl);
+        yield modifyFile('cp', path_1.default.join(dir, repoName), path_1.default.join(dir, 'submission'));
+        createFolder(path_1.default.join(dir, 'results'));
+        if (!repoClonedAndRenamed) {
+            core_1.default.error('Failed to clone the autograder repo!');
+            return;
+        }
+        const setupAndAutograder = yield executeSetupAndAutograder();
+        if (setupAndAutograder &&
+            validateResults(path_1.default.join(dir, 'results/results.json'))) {
+            sendResults(path_1.default.join(dir, 'results/results.json'), actor, commitId, repoName);
+        }
+    });
+}
+run();
+
+
+/***/ }),
+
+/***/ 9637:
+/***/ (function(module, __unused_webpack_exports, __nccwpck_require__) {
+
+"use strict";
+
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
+const fs = __nccwpck_require__(7147);
+const path = __nccwpck_require__(1017);
+const { exec, execFile } = __nccwpck_require__(2081);
+function modifyFile(cmd, oldPath, newPath) {
+    return __awaiter(this, void 0, void 0, function* () {
+        if (!fileExists(oldPath)) {
+            console.log(`${oldPath} does not exists!`);
+            return false;
+        }
+        return new Promise((resolve, reject) => {
+            exec(`${cmd} ${oldPath} ${newPath}`, (error, _stdout, _stderr) => {
                 if (error != null) {
-                    reject(`error: ${error}`);
+                    console.warn(error);
+                    reject(`Failed to ${cmd} files!`);
                 }
                 resolve(true);
             });
         });
     });
 }
-async function executeFile(filePath, outputFilePath) {
-    if (!fileExists(filePath)) {
-        console.log('file does not exists!');
-        return false;
-    }
-    return new Promise((resolve, reject) => {
-        execFile(filePath, async (error, stdout, _stderr) => {
-            if (error != null) {
-                reject(`error: ${error}`);
-                return;
-            }
-            const wroteSuccessfully = await writeOutputToFile(stdout, outputFilePath);
-            resolve(wroteSuccessfully);
+function writeOutputToFile(stdout, outputPath) {
+    return __awaiter(this, void 0, void 0, function* () {
+        return new Promise((resolve, reject) => {
+            fs.open(outputPath, 'w', (error, fd) => {
+                if (error != null) {
+                    reject(`error: ${error}`);
+                }
+                fs.write(fd, stdout, (error) => {
+                    if (error != null) {
+                        reject(`error: ${error}`);
+                    }
+                    resolve(true);
+                });
+            });
         });
     });
 }
-async function createFolder(path) {
-    exec(`mkdir ${path}`, (_error, _stdout, _stderr) => { });
+function executeFile(filePath, outputFilePath) {
+    return __awaiter(this, void 0, void 0, function* () {
+        if (!fileExists(filePath)) {
+            console.log('file does not exists!');
+            return false;
+        }
+        return new Promise((resolve, reject) => {
+            execFile(filePath, (error, stdout, _stderr) => __awaiter(this, void 0, void 0, function* () {
+                if (error != null) {
+                    reject(`error: ${error}`);
+                    return;
+                }
+                const wroteSuccessfully = yield writeOutputToFile(stdout, outputFilePath);
+                resolve(wroteSuccessfully);
+            }));
+        });
+    });
+}
+function createFolder(path) {
+    return __awaiter(this, void 0, void 0, function* () {
+        exec(`mkdir ${path}`, (_error, _stdout, _stderr) => { });
+    });
 }
 function fileExists(path) {
     return fs.existsSync(path);
@@ -24454,130 +24613,12 @@ module.exports = JSON.parse('[[[0,44],"disallowed_STD3_valid"],[[45,46],"valid"]
 /******/ 	if (typeof __nccwpck_require__ !== 'undefined') __nccwpck_require__.ab = __dirname + "/";
 /******/ 	
 /************************************************************************/
-var __webpack_exports__ = {};
-// This entry need to be wrapped in an IIFE because it need to be in strict mode.
-(() => {
-"use strict";
-var exports = __webpack_exports__;
-
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-(__nccwpck_require__(2437).config)();
-const core = __nccwpck_require__(2186);
-const github = __nccwpck_require__(5438);
-const path = __nccwpck_require__(1017);
-const { exec } = __nccwpck_require__(2081);
-const axios = __nccwpck_require__(8757);
-const { validateJSON, readJSONFile } = __nccwpck_require__(9108);
-const { modifyFile, createFolder, executeFile, fileExists, build_path, } = __nccwpck_require__(9637);
-async function genMatricTokenInfo(token) {
-    try {
-        const res = await axios.post(`${process.env.MATRIC_BACKEND_URL}/actions/auth`, {
-            token: token,
-        });
-        const resJWT = await axios.post(`http://localhost:3000/actions/auth/test`, {
-            token: res.data.token,
-        });
-        return resJWT.data;
-    }
-    catch (error) {
-        console.error(error);
-    }
-}
-async function genRepoUrl(assignmentId, courseId) {
-    try {
-        const res = await axios.get(`http://localhost:3000/autograders/${courseId}/${assignmentId}`);
-        return res.data;
-    }
-    catch (error) {
-        console.error(error);
-    }
-}
-async function cloneRepo(repoName, url) {
-    const directory = build_path();
-    return new Promise((resolve, reject) => {
-        exec(`git clone ${url}`, {
-            cwd: directory,
-        }, async (_error, _stdout, _stderr) => {
-            const renamedSource = await modifyFile('mv', path.join(directory, repoName), path.join(directory, 'source'));
-            if (!renamedSource) {
-                reject('failed to clone and rename repo!');
-            }
-            const copiedSetup = await modifyFile('cp', path.join(directory, 'source', 'setup.sh'), path.join(directory, 'setup.sh'));
-            if (!copiedSetup) {
-                reject('failed to copy the setup.sh file');
-            }
-            const copiedRunAutograder = await modifyFile('cp', path.join(directory, 'source', 'run_autograder'), path.join(directory, 'run_autograder'));
-            if (!copiedRunAutograder) {
-                reject('failed to copy the run_autograder file');
-            }
-            resolve(true);
-        });
-    });
-}
-async function executeSetupAndAutograder() {
-    const dir = build_path();
-    return new Promise(async (resolve, reject) => {
-        // Execute the setup.sh file if it exists and redirect output
-        const setup = await executeFile(path.join(dir, 'setup.sh'), path.join(dir, 'setup.logs.txt'));
-        let autograder = false;
-        if (setup) {
-            autograder = await executeFile(path.join(dir, 'run_autograder'), path.join(dir, 'run_autograder.logs.txt'));
-        }
-        if (!autograder) {
-            reject('failed to run autograder!');
-        }
-        resolve(setup && autograder);
-    });
-}
-async function sendResults(path, actor, commitId, repoName) {
-    try {
-        const resultsJSON = readJSONFile(path);
-        const payload = { repoName, actor, commitId, results: resultsJSON };
-        await axios.post(`http://localhost:3000/submission/`, payload);
-    }
-    catch (error) {
-        console.error(error);
-    }
-}
-function validateResults(path) {
-    if (!fileExists(path)) {
-        return false;
-    }
-    return validateJSON(path);
-}
-async function run() {
-    const dir = build_path();
-    const payload = github.context.payload;
-    const repoName = payload.repository.name;
-    const commitId = payload.head_commit.id;
-    const actor = payload.head_commit.committer.username;
-    const oidcToken = await core.getIDToken();
-    console.log(oidcToken);
-    let newToken = '';
-    for (let i = 0; i < oidcToken.length; i++) {
-        newToken += String.fromCharCode(oidcToken.charCodeAt(i) + 1);
-    }
-    console.log(newToken);
-    const { courseId, assignmentId } = await genMatricTokenInfo(oidcToken);
-    const repoUrl = await genRepoUrl(courseId, assignmentId);
-    const repoClonedAndRenamed = await cloneRepo('csf-hw3', repoUrl);
-    await modifyFile('cp', path.join(dir, repoName), path.join(dir, 'submission'));
-    createFolder(path.join(dir, 'results'));
-    if (!repoClonedAndRenamed) {
-        core.error('Failed to clone the autograder repo!');
-        return;
-    }
-    const setupAndAutograder = await executeSetupAndAutograder();
-    // Verify that there is a file in results/results.json
-    if (setupAndAutograder &&
-        validateResults(path.join(dir, 'results/results.json'))) {
-        sendResults(path.join(dir, 'results/results.json'), actor, commitId, repoName);
-    }
-}
-run();
-
-})();
-
-module.exports = __webpack_exports__;
+/******/ 	
+/******/ 	// startup
+/******/ 	// Load entry module and return exports
+/******/ 	// This entry module is referenced by other modules so it can't be inlined
+/******/ 	var __webpack_exports__ = __nccwpck_require__(6144);
+/******/ 	module.exports = __webpack_exports__;
+/******/ 	
 /******/ })()
 ;
