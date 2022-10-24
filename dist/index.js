@@ -13196,15 +13196,10 @@ function run() {
         const oidcToken = yield core.getIDToken();
         const { courseId, assignmentId } = yield genMatricTokenInfo(oidcToken);
         const repoUrl = yield genRepoUrl(courseId, assignmentId);
-        const repoClonedAndRenamed = yield cloneRepo('csf-hw3', repoUrl);
+        const repoClonedAndRenamed = yield cloneRepo('csf-hw3', repoUrl).then(() => __awaiter(this, void 0, void 0, function* () { return yield executeSetupAndAutograder(); }));
         yield (0, file_util_1.modifyFile)('cp', path.join(dir, repoName), path.join(dir, 'submission'));
         (0, file_util_1.createFolder)(path.join(dir, 'results'));
-        if (!repoClonedAndRenamed) {
-            core.error('Failed to clone the autograder repo!');
-            return;
-        }
-        const setupAndAutograder = yield executeSetupAndAutograder();
-        if (setupAndAutograder &&
+        if (repoClonedAndRenamed &&
             validateResults(path.join(dir, 'results/results.json'))) {
             sendResults(path.join(dir, 'results/results.json'), actor, commitId, repoName);
         }

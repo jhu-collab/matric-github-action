@@ -136,7 +136,9 @@ async function run(): Promise<void> {
   const oidcToken = await core.getIDToken();
   const { courseId, assignmentId } = await genMatricTokenInfo(oidcToken);
   const repoUrl = await genRepoUrl(courseId, assignmentId);
-  const repoClonedAndRenamed = await cloneRepo('csf-hw3', repoUrl);
+  const repoClonedAndRenamed = await cloneRepo('csf-hw3', repoUrl).then(
+    async () => await executeSetupAndAutograder(),
+  );
 
   await modifyFile(
     'cp',
@@ -146,15 +148,8 @@ async function run(): Promise<void> {
 
   createFolder(path.join(dir, 'results'));
 
-  if (!repoClonedAndRenamed) {
-    core.error('Failed to clone the autograder repo!');
-    return;
-  }
-
-  const setupAndAutograder = await executeSetupAndAutograder();
-
   if (
-    setupAndAutograder &&
+    repoClonedAndRenamed &&
     validateResults(path.join(dir, 'results/results.json'))
   ) {
     sendResults(
