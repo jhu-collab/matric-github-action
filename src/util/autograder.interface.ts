@@ -10,9 +10,13 @@ export interface AutograderData {
   leaderboard: LeaderBoardStatus[]; // Optional, will set up leaderboards for these values
 }
 
-type Visibility = 'hidden' | 'after_due_date' | 'after_published' | 'visible';
+export type Visibility =
+  | 'hidden'
+  | 'after_due_date'
+  | 'after_published'
+  | 'visible';
 
-interface Test {
+export interface Test {
   score: number; // optional, but required if not on top level submission
   max_score: number; // optional
   status: 'passed' | 'failed'; // optional
@@ -26,7 +30,7 @@ interface Test {
   extra_data: any; // Optional extra data to be stored
 }
 
-interface LeaderBoardStatus {
+export interface LeaderBoardStatus {
   name: string;
   value: string | number;
   order: 'asc' | 'dsc';

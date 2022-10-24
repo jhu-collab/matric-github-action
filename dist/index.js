@@ -13336,20 +13336,128 @@ exports.build_path = build_path;
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.validateJSON = exports.readJSONFile = void 0;
 const fs_1 = __nccwpck_require__(7147);
+const autoGraderProperties = new Set([
+    'score',
+    'execution_time',
+    'output',
+    'visibility',
+    'stdout_visibility',
+    'extra_data',
+    'tests',
+    'leaderboard',
+]);
+const testProperties = new Set([
+    'score',
+    'execution_time',
+    'output',
+    'visibility',
+    'stdout_visibility',
+    'extra_data',
+    'tests',
+    'leaderboard',
+]);
 function readJSONFile(path) {
     return JSON.parse(JSON.stringify((0, fs_1.readFileSync)(path)));
 }
 exports.readJSONFile = readJSONFile;
-function validateJSON(filePath) {
-    //const ajv = new Ajv();
-    const results = readJSONFile(filePath);
-    //const validate = ajv.compile(schema);
-    /*
-    if (!validate(results)) {
-      return false;
+function isAny(value, types) {
+    return types.includes(value);
+}
+function isVisibility(value) {
+    return isAny(value, [
+        'hidden',
+        'after_due_date',
+        'after_published',
+        'visible',
+    ]);
+}
+function validateLeaderBoard(data) {
+    if (!Array.isArray(data)) {
+        return false;
     }
-    */
+    for (const obj of data) {
+        if (typeof obj != 'object') {
+            return false;
+        }
+        if (!obj.hasOwnProperty('name') || !obj.hasOwnProperty('value')) {
+            return false;
+        }
+        if (!obj.hasOwnProperty('order') || !isAny(obj['order'], ['asc', 'dsc'])) {
+            return false;
+        }
+    }
+}
+function validateTests(data, scorePresentTopLevel) {
+    if (!Array.isArray(data)) {
+        return false;
+    }
+    for (const test of data) {
+        for (const prop in test) {
+            if (!testProperties.has(prop)) {
+                return false;
+            }
+        }
+        if (!scorePresentTopLevel &&
+            (!test.hasOwnProperty('score') || isNaN(test['score']))) {
+            return false;
+        }
+        if (test.hasOwnProperty('max_score') && isNaN(test['max_score'])) {
+            return false;
+        }
+        if (test.hasOwnProperty('status') &&
+            !isAny(test['status'], ['passed', 'failed'])) {
+            return false;
+        }
+        if (test.hasOwnProperty('tags') && !Array.isArray(test['tags'])) {
+            return false;
+        }
+        if (test.hasOwnProperty('lineNumber') && isNaN(test['lineNumber'])) {
+            return false;
+        }
+        if (test.hasOwnProperty('visibility') && isVisibility(test['visibility'])) {
+            return false;
+        }
+    }
+}
+function validateProperties(obj) {
+    for (const prop in obj) {
+        if (!autoGraderProperties.has(prop)) {
+            return false;
+        }
+    }
+    const scorePresentTopLevel = obj.hasOwnProperty('score') && !isNaN(obj['score']);
+    if (obj.hasOwnProperty('visibility') && !isVisibility(obj['visibility'])) {
+        return false;
+    }
+    if (obj.hasOwnProperty('stdout_visibility') &&
+        !isVisibility(obj['stdout_visibility'])) {
+        return false;
+    }
+    if (obj.hasOwnProperty('execution_time') && isNaN(obj['execution_time'])) {
+        return false;
+    }
+    if (scorePresentTopLevel && !obj.hasOwnProperty('tests')) {
+        return false;
+    }
+    if (obj.hasOwnProperty('tests') &&
+        !validateTests(obj['tests'], scorePresentTopLevel)) {
+        return false;
+    }
+    if (obj.hasOwnProperty('leaderboard') &&
+        !validateLeaderBoard(obj['leaderboard'])) {
+        return false;
+    }
     return true;
+}
+function validateJSON(filePath) {
+    try {
+        const results = readJSONFile(filePath);
+        return validateProperties(results);
+    }
+    catch (err) {
+        console.error(err);
+        return false;
+    }
 }
 exports.validateJSON = validateJSON;
 
