@@ -50,7 +50,7 @@ async function cloneRepo(repoName: string, url: string): Promise<boolean> {
       {
         cwd: directory,
       },
-      async (_error: any, _stdout: any, _stderr: any) => {
+      async () => {
         const renamedSource = await modifyFile(
           'mv',
           path.join(directory, repoName),
@@ -88,27 +88,20 @@ async function cloneRepo(repoName: string, url: string): Promise<boolean> {
 
 async function executeSetupAndAutograder(): Promise<boolean> {
   const dir = build_path();
-  return new Promise(async (resolve, reject) => {
+  return new Promise((resolve, reject) => {
     // Execute the setup.sh file if it exists and redirect output
-    const setup = await executeFile(
-      path.join(dir, 'setup.sh'),
-      path.join(dir, 'setup.logs.txt'),
-    );
+    executeFile(path.join(dir, 'setup.sh'), path.join(dir, 'setup.logs.txt'))
+      .then(() => {
+        executeFile(
+          path.join(dir, 'run_autograder'),
+          path.join(dir, 'run_autograder.logs.txt'),
+        );
+      })
+      .catch((err: unknown) => {
+        reject(err);
+      });
 
-    let autograder = false;
-
-    if (setup) {
-      autograder = await executeFile(
-        path.join(dir, 'run_autograder'),
-        path.join(dir, 'run_autograder.logs.txt'),
-      );
-    }
-
-    if (!autograder) {
-      reject('failed to run autograder!');
-    }
-
-    resolve(setup && autograder);
+    resolve(true);
   });
 }
 

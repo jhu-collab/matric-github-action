@@ -13133,7 +13133,7 @@ function cloneRepo(repoName, url) {
         return new Promise((resolve, reject) => {
             (0, child_process_1.exec)(`git clone ${url}`, {
                 cwd: directory,
-            }, (_error, _stdout, _stderr) => __awaiter(this, void 0, void 0, function* () {
+            }, () => __awaiter(this, void 0, void 0, function* () {
                 const renamedSource = yield (0, file_util_1.modifyFile)('mv', path.join(directory, repoName), path.join(directory, 'source'));
                 if (!renamedSource) {
                     reject('failed to clone and rename repo!');
@@ -13154,18 +13154,17 @@ function cloneRepo(repoName, url) {
 function executeSetupAndAutograder() {
     return __awaiter(this, void 0, void 0, function* () {
         const dir = (0, file_util_1.build_path)();
-        return new Promise((resolve, reject) => __awaiter(this, void 0, void 0, function* () {
+        return new Promise((resolve, reject) => {
             // Execute the setup.sh file if it exists and redirect output
-            const setup = yield (0, file_util_1.executeFile)(path.join(dir, 'setup.sh'), path.join(dir, 'setup.logs.txt'));
-            let autograder = false;
-            if (setup) {
-                autograder = yield (0, file_util_1.executeFile)(path.join(dir, 'run_autograder'), path.join(dir, 'run_autograder.logs.txt'));
-            }
-            if (!autograder) {
-                reject('failed to run autograder!');
-            }
-            resolve(setup && autograder);
-        }));
+            (0, file_util_1.executeFile)(path.join(dir, 'setup.sh'), path.join(dir, 'setup.logs.txt'))
+                .then(() => {
+                (0, file_util_1.executeFile)(path.join(dir, 'run_autograder'), path.join(dir, 'run_autograder.logs.txt'));
+            })
+                .catch((err) => {
+                reject(err);
+            });
+            resolve(true);
+        });
     });
 }
 function sendResults(path, actor, commitId, repoName) {
