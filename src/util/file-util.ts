@@ -1,6 +1,6 @@
 import * as fs from 'fs';
 import path from 'path';
-import { exec, execFile } from 'child_process';
+import { exec, ExecException, execFile } from 'child_process';
 
 export async function modifyFile(
   cmd: string,
@@ -15,7 +15,7 @@ export async function modifyFile(
   return new Promise((resolve, reject) => {
     exec(
       `${cmd} ${oldPath} ${newPath}`,
-      (error: any, _stdout: any, _stderr: any) => {
+      (error: ExecException | null): void => {
         if (error != null) {
           console.warn(error);
           reject(`Failed to ${cmd} files!`);
@@ -31,7 +31,7 @@ export async function writeOutputToFile(
   outputPath: string,
 ): Promise<boolean> {
   return new Promise((resolve, reject) => {
-    fs.open(outputPath, 'w', (error: any, fd: any) => {
+    fs.open(outputPath, 'w', (error: Error | null, fd: number) => {
       if (error != null) {
         reject(`error: ${error}`);
       }
@@ -55,7 +55,7 @@ export async function executeFile(
     return false;
   }
   return new Promise((resolve, reject) => {
-    execFile(filePath, async (error: any, stdout: any, _stderr: any) => {
+    execFile(filePath, async (error: unknown, stdout: string) => {
       if (error != null) {
         reject(`error: ${error}`);
         return;
@@ -67,7 +67,7 @@ export async function executeFile(
 }
 
 export async function createFolder(path: string): Promise<void> {
-  exec(`mkdir ${path}`, (_error: any, _stdout: any, _stderr: any) => {});
+  exec(`mkdir ${path}`);
 }
 
 export function fileExists(path: string): boolean {

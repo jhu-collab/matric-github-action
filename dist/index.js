@@ -13092,7 +13092,8 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-(__nccwpck_require__(2437).config)();
+const dotenv_1 = __importDefault(__nccwpck_require__(2437));
+dotenv_1.default.config();
 const core = __nccwpck_require__(2186);
 const github = __nccwpck_require__(5438);
 const path = __nccwpck_require__(1017);
@@ -13106,7 +13107,7 @@ function genMatricTokenInfo(token) {
             const res = yield axios_1.default.post(`${process.env.MATRIC_BACKEND_URL}/actions/auth`, {
                 token: token,
             });
-            const resJWT = yield axios_1.default.post(`http://localhost:3000/actions/auth/test`, {
+            const resJWT = yield axios_1.default.post(`https://proj-matric-prod.herokuapp.com/actions/auth/test`, {
                 token: res.data.token,
             });
             return resJWT.data;
@@ -13119,7 +13120,7 @@ function genMatricTokenInfo(token) {
 function genRepoUrl(assignmentId, courseId) {
     return __awaiter(this, void 0, void 0, function* () {
         try {
-            const res = yield axios_1.default.get(`http://localhost:3000/autograders/${courseId}/${assignmentId}`);
+            const res = yield axios_1.default.get(`https://proj-matric-prod.herokuapp.com/autograders/${courseId}/${assignmentId}`);
             return res.data;
         }
         catch (error) {
@@ -13172,7 +13173,7 @@ function sendResults(path, actor, commitId, repoName) {
         try {
             const resultsJSON = (0, json_util_1.readJSONFile)(path);
             const payload = { repoName, actor, commitId, results: resultsJSON };
-            yield axios_1.default.post(`http://localhost:3000/submission/`, payload);
+            yield axios_1.default.post(`https://proj-matric-prod.herokuapp.com/submission/`, payload);
         }
         catch (error) {
             console.error(error);
@@ -13262,7 +13263,7 @@ function modifyFile(cmd, oldPath, newPath) {
             return false;
         }
         return new Promise((resolve, reject) => {
-            (0, child_process_1.exec)(`${cmd} ${oldPath} ${newPath}`, (error, _stdout, _stderr) => {
+            (0, child_process_1.exec)(`${cmd} ${oldPath} ${newPath}`, (error) => {
                 if (error != null) {
                     console.warn(error);
                     reject(`Failed to ${cmd} files!`);
@@ -13298,7 +13299,7 @@ function executeFile(filePath, outputFilePath) {
             return false;
         }
         return new Promise((resolve, reject) => {
-            (0, child_process_1.execFile)(filePath, (error, stdout, _stderr) => __awaiter(this, void 0, void 0, function* () {
+            (0, child_process_1.execFile)(filePath, (error, stdout) => __awaiter(this, void 0, void 0, function* () {
                 if (error != null) {
                     reject(`error: ${error}`);
                     return;
@@ -13312,7 +13313,7 @@ function executeFile(filePath, outputFilePath) {
 exports.executeFile = executeFile;
 function createFolder(path) {
     return __awaiter(this, void 0, void 0, function* () {
-        (0, child_process_1.exec)(`mkdir ${path}`, (_error, _stdout, _stderr) => { });
+        (0, child_process_1.exec)(`mkdir ${path}`);
     });
 }
 exports.createFolder = createFolder;
@@ -13329,13 +13330,18 @@ exports.build_path = build_path;
 /***/ }),
 
 /***/ 9108:
-/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
+/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
 
 "use strict";
 
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.validateJSON = exports.readJSONFile = void 0;
 const fs_1 = __nccwpck_require__(7147);
+const file_util_1 = __nccwpck_require__(9637);
+const path_1 = __importDefault(__nccwpck_require__(1017));
 const autoGraderProperties = new Set([
     'score',
     'execution_time',
@@ -13363,6 +13369,9 @@ exports.readJSONFile = readJSONFile;
 function isAny(value, types) {
     return types.includes(value);
 }
+function propertyExists(prop, obj) {
+    return Object.prototype.hasOwnProperty.call(obj, prop);
+}
 function isVisibility(value) {
     return isAny(value, [
         'hidden',
@@ -13379,10 +13388,10 @@ function validateLeaderBoard(data) {
         if (typeof obj != 'object') {
             return false;
         }
-        if (!obj.hasOwnProperty('name') || !obj.hasOwnProperty('value')) {
+        if (!propertyExists('name', obj) || !propertyExists('value', obj)) {
             return false;
         }
-        if (!obj.hasOwnProperty('order') || !isAny(obj['order'], ['asc', 'dsc'])) {
+        if (!propertyExists('order', obj) || !isAny(obj['order'], ['asc', 'dsc'])) {
             return false;
         }
     }
@@ -13398,52 +13407,57 @@ function validateTests(data, scorePresentTopLevel) {
             }
         }
         if (!scorePresentTopLevel &&
-            (!test.hasOwnProperty('score') || isNaN(test['score']))) {
+            (!propertyExists('score', test) || isNaN(test['score']))) {
             return false;
         }
-        if (test.hasOwnProperty('max_score') && isNaN(test['max_score'])) {
+        if (propertyExists('max_score', test) && isNaN(test['max_score'])) {
             return false;
         }
-        if (test.hasOwnProperty('status') &&
+        if (propertyExists('status', test) &&
             !isAny(test['status'], ['passed', 'failed'])) {
             return false;
         }
-        if (test.hasOwnProperty('tags') && !Array.isArray(test['tags'])) {
+        if (propertyExists('tags', test) && !Array.isArray(test['tags'])) {
             return false;
         }
-        if (test.hasOwnProperty('lineNumber') && isNaN(test['lineNumber'])) {
+        if (propertyExists('score', test) && isNaN(test['lineNumber'])) {
             return false;
         }
-        if (test.hasOwnProperty('visibility') && isVisibility(test['visibility'])) {
+        if (propertyExists('visibility', test) &&
+            isVisibility(test['visibility'])) {
             return false;
         }
     }
 }
+// eslint-disable-next-line
 function validateProperties(obj) {
+    if (obj == null || typeof obj != 'object') {
+        return false;
+    }
     for (const prop in obj) {
         if (!autoGraderProperties.has(prop)) {
             return false;
         }
     }
-    const scorePresentTopLevel = obj.hasOwnProperty('score') && !isNaN(obj['score']);
-    if (obj.hasOwnProperty('visibility') && !isVisibility(obj['visibility'])) {
+    const scorePresentTopLevel = propertyExists('score', obj) && !isNaN(obj['score']);
+    if (propertyExists('visibility', obj) && !isVisibility(obj['visibility'])) {
         return false;
     }
-    if (obj.hasOwnProperty('stdout_visibility') &&
+    if (propertyExists('stdout_visibility', obj) &&
         !isVisibility(obj['stdout_visibility'])) {
         return false;
     }
-    if (obj.hasOwnProperty('execution_time') && isNaN(obj['execution_time'])) {
+    if (propertyExists('execution_time', obj) && isNaN(obj['execution_time'])) {
         return false;
     }
-    if (scorePresentTopLevel && !obj.hasOwnProperty('tests')) {
+    if (scorePresentTopLevel && !propertyExists('tests', obj)) {
         return false;
     }
-    if (obj.hasOwnProperty('tests') &&
+    if (propertyExists('tests', obj) &&
         !validateTests(obj['tests'], scorePresentTopLevel)) {
         return false;
     }
-    if (obj.hasOwnProperty('leaderboard') &&
+    if (propertyExists('leaderboard', obj) &&
         !validateLeaderBoard(obj['leaderboard'])) {
         return false;
     }
@@ -13460,6 +13474,7 @@ function validateJSON(filePath) {
     }
 }
 exports.validateJSON = validateJSON;
+validateJSON(path_1.default.join((0, file_util_1.build_path)(), 'results/results.json'));
 
 
 /***/ }),

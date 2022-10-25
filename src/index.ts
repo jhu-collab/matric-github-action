@@ -1,4 +1,5 @@
-require('dotenv').config();
+import dotenv from 'dotenv';
+dotenv.config();
 import core = require('@actions/core');
 import github = require('@actions/github');
 import path = require('path');
@@ -22,9 +23,12 @@ async function genMatricTokenInfo(token: string) {
       },
     );
 
-    const resJWT = await axios.post(`http://localhost:3000/actions/auth/test`, {
-      token: res.data.token,
-    });
+    const resJWT = await axios.post(
+      `https://proj-matric-prod.herokuapp.com/actions/auth/test`,
+      {
+        token: res.data.token,
+      },
+    );
     return resJWT.data;
   } catch (error) {
     console.error(error);
@@ -34,7 +38,7 @@ async function genMatricTokenInfo(token: string) {
 async function genRepoUrl(assignmentId: string, courseId: string) {
   try {
     const res = await axios.get(
-      `http://localhost:3000/autograders/${courseId}/${assignmentId}`,
+      `https://proj-matric-prod.herokuapp.com/autograders/${courseId}/${assignmentId}`,
     );
     return res.data;
   } catch (error) {
@@ -114,7 +118,10 @@ async function sendResults(
   try {
     const resultsJSON = readJSONFile(path);
     const payload = { repoName, actor, commitId, results: resultsJSON };
-    await axios.post(`http://localhost:3000/submission/`, payload);
+    await axios.post(
+      `https://proj-matric-prod.herokuapp.com/submission/`,
+      payload,
+    );
   } catch (error) {
     console.error(error);
   }

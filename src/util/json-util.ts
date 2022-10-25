@@ -1,4 +1,6 @@
 import { readFileSync } from 'fs';
+import { build_path } from './file-util';
+import path from 'path';
 
 const autoGraderProperties = new Set([
   'score',
@@ -43,7 +45,7 @@ function isVisibility(value: string) {
   ]);
 }
 
-function validateLeaderBoard(data: any) {
+function validateLeaderBoard(data: unknown) {
   if (!Array.isArray(data)) {
     return false;
   }
@@ -53,7 +55,7 @@ function validateLeaderBoard(data: any) {
       return false;
     }
 
-    if (!propertyExists('name', obj) || !obj.hasOwnProperty('value')) {
+    if (!propertyExists('name', obj) || !propertyExists('value', obj)) {
       return false;
     }
 
@@ -63,7 +65,7 @@ function validateLeaderBoard(data: any) {
   }
 }
 
-function validateTests(data: any, scorePresentTopLevel: boolean) {
+function validateTests(data: unknown, scorePresentTopLevel: boolean) {
   if (!Array.isArray(data)) {
     return false;
   }
@@ -110,7 +112,12 @@ function validateTests(data: any, scorePresentTopLevel: boolean) {
   }
 }
 
+// eslint-disable-next-line
 function validateProperties(obj: any): boolean {
+  if (obj == null || typeof obj != 'object') {
+    return false;
+  }
+
   for (const prop in obj) {
     if (!autoGraderProperties.has(prop)) {
       return false;
@@ -139,14 +146,14 @@ function validateProperties(obj: any): boolean {
   }
 
   if (
-    obj.hasOwnProperty('tests') &&
+    propertyExists('tests', obj) &&
     !validateTests(obj['tests'], scorePresentTopLevel)
   ) {
     return false;
   }
 
   if (
-    obj.hasOwnProperty('leaderboard') &&
+    propertyExists('leaderboard', obj) &&
     !validateLeaderBoard(obj['leaderboard'])
   ) {
     return false;
@@ -154,7 +161,7 @@ function validateProperties(obj: any): boolean {
   return true;
 }
 
-export function validateJSON(filePath: string): boolean {
+function validateJSON(filePath: string): boolean {
   try {
     const results = readJSONFile(filePath);
     return validateProperties(results);
@@ -163,3 +170,6 @@ export function validateJSON(filePath: string): boolean {
     return false;
   }
 }
+
+validateJSON(path.join(build_path(), 'results/results.json'));
+export { validateJSON };
