@@ -29,7 +29,7 @@ async function genMatricTokenInfo(token: string) {
         token: res.data.token,
       },
     );
-    return resJWT.data;
+    return await resJWT.data;
   } catch (error) {
     console.error(error);
   }
@@ -137,11 +137,11 @@ function validateResults(path: string): boolean {
 async function run(): Promise<void> {
   const dir = build_path();
   const payload = github.context.payload;
-  console.log(payload);
   const repoName = payload.repository?.name ?? '';
   const commitId = payload.head_commit.id;
   const actor = payload.head_commit.committer.username;
   const oidcToken = await core.getIDToken();
+  console.log(oidcToken);
   const { courseId, assignmentId } = await genMatricTokenInfo(oidcToken);
   const repoUrl = await genRepoUrl(courseId, assignmentId);
   const repoClonedAndRenamed = await cloneRepo('csf-hw3', repoUrl).then(

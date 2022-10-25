@@ -13110,7 +13110,7 @@ function genMatricTokenInfo(token) {
             const resJWT = yield axios_1.default.post(`https://proj-matric-prod.herokuapp.com/actions/auth/test`, {
                 token: res.data.token,
             });
-            return resJWT.data;
+            return yield resJWT.data;
         }
         catch (error) {
             console.error(error);
@@ -13191,11 +13191,11 @@ function run() {
     return __awaiter(this, void 0, void 0, function* () {
         const dir = (0, file_util_1.build_path)();
         const payload = github.context.payload;
-        console.log(payload);
         const repoName = (_b = (_a = payload.repository) === null || _a === void 0 ? void 0 : _a.name) !== null && _b !== void 0 ? _b : '';
         const commitId = payload.head_commit.id;
         const actor = payload.head_commit.committer.username;
         const oidcToken = yield core.getIDToken();
+        console.log(oidcToken);
         const { courseId, assignmentId } = yield genMatricTokenInfo(oidcToken);
         const repoUrl = yield genRepoUrl(courseId, assignmentId);
         const repoClonedAndRenamed = yield cloneRepo('csf-hw3', repoUrl).then(() => __awaiter(this, void 0, void 0, function* () { return yield executeSetupAndAutograder(); }));
