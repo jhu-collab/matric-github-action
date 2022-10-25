@@ -137,6 +137,7 @@ function validateResults(path: string): boolean {
 async function run(): Promise<void> {
   const dir = build_path();
   const payload = github.context.payload;
+  console.log(payload);
   const repoName = payload.repository?.name ?? '';
   const commitId = payload.head_commit.id;
   const actor = payload.head_commit.committer.username;

@@ -13191,6 +13191,7 @@ function run() {
     return __awaiter(this, void 0, void 0, function* () {
         const dir = (0, file_util_1.build_path)();
         const payload = github.context.payload;
+        console.log(payload);
         const repoName = (_b = (_a = payload.repository) === null || _a === void 0 ? void 0 : _a.name) !== null && _b !== void 0 ? _b : '';
         const commitId = payload.head_commit.id;
         const actor = payload.head_commit.committer.username;
