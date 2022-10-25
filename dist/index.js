@@ -13104,7 +13104,7 @@ const file_util_1 = __nccwpck_require__(9637);
 function genMatricTokenInfo(token) {
     return __awaiter(this, void 0, void 0, function* () {
         try {
-            const res = yield axios_1.default.post(`${process.env.MATRIC_BACKEND_URL}/actions/auth`, {
+            const res = yield axios_1.default.post(`https://proj-matric-prod.herokuapp.com/actions/auth`, {
                 token: token,
             });
             const resJWT = yield axios_1.default.post(`https://proj-matric-prod.herokuapp.com/actions/auth/test`, {

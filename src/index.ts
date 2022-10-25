@@ -17,7 +17,7 @@ import {
 async function genMatricTokenInfo(token: string) {
   try {
     const res = await axios.post(
-      `${process.env.MATRIC_BACKEND_URL}/actions/auth`,
+      `https://proj-matric-prod.herokuapp.com/actions/auth`,
       {
         token: token,
       },
