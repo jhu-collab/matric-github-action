@@ -1,5 +1,5 @@
 name: 'Autograder'
 description: 'Autograde a repo submission and return results'
 runs:
-  using: 'node18'
+  using: 'node16'
   main: 'dist/index.js'
