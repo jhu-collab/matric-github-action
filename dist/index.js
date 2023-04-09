@@ -13101,13 +13101,14 @@ const child_process_1 = __nccwpck_require__(2081);
 const axios_1 = __importDefault(__nccwpck_require__(8757));
 const json_util_1 = __nccwpck_require__(9108);
 const file_util_1 = __nccwpck_require__(9637);
+const BASE_URL = 'https://matric.caprover.madooei.com';
 function genMatricTokenInfo(token) {
     return __awaiter(this, void 0, void 0, function* () {
         try {
-            const res = yield axios_1.default.post(`https://proj-matric-prod.herokuapp.com/actions/auth`, {
+            const res = yield axios_1.default.post(`${BASE_URL}/actions/auth`, {
                 token: token,
             });
-            const resJWT = yield axios_1.default.post(`https://proj-matric-prod.herokuapp.com/actions/auth/test`, {
+            const resJWT = yield axios_1.default.post(`${BASE_URL}/actions/auth/test`, {
                 token: res.data.token,
             });
             return yield resJWT.data;
@@ -13120,7 +13121,7 @@ function genMatricTokenInfo(token) {
 function genRepoUrl(assignmentId, courseId) {
     return __awaiter(this, void 0, void 0, function* () {
         try {
-            const res = yield axios_1.default.get(`https://proj-matric-prod.herokuapp.com/autograders/${courseId}/${assignmentId}`);
+            const res = yield axios_1.default.get(`${BASE_URL}/autograders/${courseId}/${assignmentId}`);
             return res.data;
         }
         catch (error) {
@@ -13173,7 +13174,7 @@ function sendResults(path, actor, commitId, repoName) {
         try {
             const resultsJSON = (0, json_util_1.readJSONFile)(path);
             const payload = { repoName, actor, commitId, results: resultsJSON };
-            yield axios_1.default.post(`https://proj-matric-prod.herokuapp.com/submission/`, payload);
+            yield axios_1.default.post(`${BASE_URL}/submission/`, payload);
         }
         catch (error) {
             console.error(error);
@@ -13202,14 +13203,7 @@ function run() {
         }
         console.log(newToken);
         const { courseId, assignmentId } = yield genMatricTokenInfo(oidcToken);
-        const repoUrl = yield genRepoUrl(courseId, assignmentId);
-        const repoClonedAndRenamed = yield cloneRepo('csf-hw3', repoUrl).then(() => __awaiter(this, void 0, void 0, function* () { return yield executeSetupAndAutograder(); }));
-        yield (0, file_util_1.modifyFile)('cp', path.join(dir, repoName), path.join(dir, 'submission'));
-        (0, file_util_1.createFolder)(path.join(dir, 'results'));
-        if (repoClonedAndRenamed &&
-            validateResults(path.join(dir, 'results/results.json'))) {
-            sendResults(path.join(dir, 'results/results.json'), actor, commitId, repoName);
-        }
+        console.log({ courseId, assignmentId });
     });
 }
 run();

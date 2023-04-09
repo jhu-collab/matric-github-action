@@ -1,21 +1,11 @@
-# Hello world javascript action
+# Matric Github Action
 
-This action prints "Hello World" or "Hello" + the name of a person to greet to the log.
+Runs the autograder for a student.
 
-## Inputs
+## Building dist/
 
-## `who-to-greet`
+In order for the code that's run to be updated, you have to re-build the dist/ folder
+after changes were made.
 
-**Required** The name of the person to greet. Default `"World"`.
-
-## Outputs
-
-## `time`
-
-The time we greeted you.
-
-## Example usage
-
-uses: actions/hello-world-javascript-action@v1.1
-with:
-  who-to-greet: 'Mona the Octocat'
+`npm i`
+`npx ncc build src/index.ts --license licenses.txt`
