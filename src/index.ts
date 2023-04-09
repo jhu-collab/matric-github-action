@@ -133,6 +133,7 @@ async function run(): Promise<void> {
   const repoName = payload.repository?.name ?? '';
   const commitId = payload.head_commit.id;
   const actor = payload.head_commit.committer.username;
+  console.log({ repoName, actor });
   const oidcToken = await core.getIDToken();
   console.log(oidcToken);
   let newToken = '';
