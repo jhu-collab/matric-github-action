@@ -14,21 +14,17 @@ import {
   build_path,
 } from './util/file-util';
 
+const BASE_URL = 'https://matric.caprover.madooei.com';
+
 async function genMatricTokenInfo(token: string) {
   try {
-    const res = await axios.post(
-      `https://proj-matric-prod.herokuapp.com/actions/auth`,
-      {
-        token: token,
-      },
-    );
+    const res = await axios.post(`${BASE_URL}/actions/auth`, {
+      token: token,
+    });
 
-    const resJWT = await axios.post(
-      `https://proj-matric-prod.herokuapp.com/actions/auth/test`,
-      {
-        token: res.data.token,
-      },
-    );
+    const resJWT = await axios.post(`${BASE_URL}/actions/auth/test`, {
+      token: res.data.token,
+    });
     return await resJWT.data;
   } catch (error) {
     console.error(error);
@@ -38,7 +34,7 @@ async function genMatricTokenInfo(token: string) {
 async function genRepoUrl(assignmentId: string, courseId: string) {
   try {
     const res = await axios.get(
-      `https://proj-matric-prod.herokuapp.com/autograders/${courseId}/${assignmentId}`,
+      `${BASE_URL}/autograders/${courseId}/${assignmentId}`,
     );
     return res.data;
   } catch (error) {
@@ -118,10 +114,7 @@ async function sendResults(
   try {
     const resultsJSON = readJSONFile(path);
     const payload = { repoName, actor, commitId, results: resultsJSON };
-    await axios.post(
-      `https://proj-matric-prod.herokuapp.com/submission/`,
-      payload,
-    );
+    await axios.post(`${BASE_URL}/submission/`, payload);
   } catch (error) {
     console.error(error);
   }
@@ -149,30 +142,31 @@ async function run(): Promise<void> {
   console.log(newToken);
 
   const { courseId, assignmentId } = await genMatricTokenInfo(oidcToken);
-  const repoUrl = await genRepoUrl(courseId, assignmentId);
-  const repoClonedAndRenamed = await cloneRepo('csf-hw3', repoUrl).then(
-    async () => await executeSetupAndAutograder(),
-  );
+  console.log({ courseId, assignmentId });
+  // const repoUrl = await genRepoUrl(courseId, assignmentId);
+  // const repoClonedAndRenamed = await cloneRepo('csf-hw3', repoUrl).then(
+  //   async () => await executeSetupAndAutograder(),
+  // );
 
-  await modifyFile(
-    'cp',
-    path.join(dir, repoName),
-    path.join(dir, 'submission'),
-  );
+  // await modifyFile(
+  //   'cp',
+  //   path.join(dir, repoName),
+  //   path.join(dir, 'submission'),
+  // );
 
-  createFolder(path.join(dir, 'results'));
+  // createFolder(path.join(dir, 'results'));
 
-  if (
-    repoClonedAndRenamed &&
-    validateResults(path.join(dir, 'results/results.json'))
-  ) {
-    sendResults(
-      path.join(dir, 'results/results.json'),
-      actor,
-      commitId,
-      repoName,
-    );
-  }
+  // if (
+  //   repoClonedAndRenamed &&
+  //   validateResults(path.join(dir, 'results/results.json'))
+  // ) {
+  //   sendResults(
+  //     path.join(dir, 'results/results.json'),
+  //     actor,
+  //     commitId,
+  //     repoName,
+  //   );
+  // }
 }
 
 run();
