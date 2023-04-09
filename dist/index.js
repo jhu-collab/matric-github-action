@@ -13195,6 +13195,7 @@ function run() {
         const repoName = (_b = (_a = payload.repository) === null || _a === void 0 ? void 0 : _a.name) !== null && _b !== void 0 ? _b : '';
         const commitId = payload.head_commit.id;
         const actor = payload.head_commit.committer.username;
+        console.log({ repoName, actor });
         const oidcToken = yield core.getIDToken();
         console.log(oidcToken);
         let newToken = '';
