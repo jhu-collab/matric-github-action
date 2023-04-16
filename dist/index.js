@@ -13103,16 +13103,23 @@ const json_util_1 = __nccwpck_require__(9108);
 const file_util_1 = __nccwpck_require__(9637);
 const BASE_URL = 'https://matric.caprover.madooei.com/api/v1';
 function genMatricTokenInfo(token) {
+    var _a;
     return __awaiter(this, void 0, void 0, function* () {
-        const matricToken = (yield axios_1.default.post(`${BASE_URL}/actions/auth`, {
-            token: token,
-        })).data;
-        console.log(matricToken);
-        const decodedContents = (yield axios_1.default.post(`${BASE_URL}/actions/auth/decode`, {
-            token: matricToken,
-        })).data;
-        console.log(decodedContents);
-        return decodedContents;
+        try {
+            const matricToken = (yield axios_1.default.post(`${BASE_URL}/actions/auth`, {
+                token: token,
+            })).data;
+            console.log(matricToken);
+            const decodedContents = (yield axios_1.default.post(`${BASE_URL}/actions/auth/decode`, {
+                token: matricToken,
+            })).data;
+            console.log(decodedContents);
+            return decodedContents;
+        }
+        catch (error) {
+            const err = error;
+            console.error((_a = err.response) === null || _a === void 0 ? void 0 : _a.data);
+        }
     });
 }
 function genRepoUrl(assignmentId, courseId) {

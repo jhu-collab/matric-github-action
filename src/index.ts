@@ -4,7 +4,7 @@ import core = require('@actions/core');
 import github = require('@actions/github');
 import path = require('path');
 import { exec } from 'child_process';
-import axios from 'axios';
+import axios, { AxiosError } from 'axios';
 import { validateJSON, readJSONFile } from './util/json-util';
 import {
   modifyFile,
@@ -26,19 +26,24 @@ type ErrorResponse = {
 };
 
 async function genMatricTokenInfo(token: string) {
-  const matricToken = (
-    await axios.post(`${BASE_URL}/actions/auth`, {
-      token: token,
-    })
-  ).data;
-  console.log(matricToken);
-  const decodedContents = (
-    await axios.post(`${BASE_URL}/actions/auth/decode`, {
-      token: matricToken,
-    })
-  ).data;
-  console.log(decodedContents);
-  return decodedContents;
+  try {
+    const matricToken = (
+      await axios.post(`${BASE_URL}/actions/auth`, {
+        token: token,
+      })
+    ).data;
+    console.log(matricToken);
+    const decodedContents = (
+      await axios.post(`${BASE_URL}/actions/auth/decode`, {
+        token: matricToken,
+      })
+    ).data;
+    console.log(decodedContents);
+    return decodedContents;
+  } catch (error) {
+    const err = error as AxiosError;
+    console.error(err.response?.data);
+  }
 }
 
 async function genRepoUrl(assignmentId: string, courseId: string) {
