@@ -7,13 +7,16 @@ Runs the autograder for a student.
 In order for the code that's run to be updated, you have to re-build the dist/ folder
 after changes were made.
 
-`npm i`
-`npx ncc build src/index.ts --license licenses.txt`
+```bash
+npm i
+npx ncc build src/index.ts --license licenses.txt
+```
 
 ## Running the actions to submit
 
-There is an example github actions file in the `hw1` which should be the most up-to-date
-.yml file to include in repositories. Just in case, the actions file is embedded here:
+There is an example github actions file in the `jhu-collab/hw1` repository which should
+be the most up-to-date .yml file to include in repositories. Just in case, the actions
+file is embedded here:
 
 ```yml
 name: Submission
