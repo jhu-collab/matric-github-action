@@ -14,18 +14,23 @@ import {
   build_path,
 } from './util/file-util';
 
-const BASE_URL = 'https://matric.caprover.madooei.com';
+const BASE_URL = 'https://matric.caprover.madooei.com/api/v1/';
 
 async function genMatricTokenInfo(token: string) {
   try {
-    const res = await axios.post(`${BASE_URL}/actions/auth`, {
-      token: token,
-    });
-
-    const resJWT = await axios.post(`${BASE_URL}/actions/auth/test`, {
-      token: res.data.token,
-    });
-    return await resJWT.data;
+    const matricToken = (
+      await axios.post(`${BASE_URL}/actions/auth`, {
+        token: token,
+      })
+    ).data;
+    console.log(matricToken);
+    const decodedContents = (
+      await axios.post(`${BASE_URL}/actions/auth/decode`, {
+        token: matricToken,
+      })
+    ).data;
+    console.log(decodedContents);
+    return decodedContents;
   } catch (error) {
     console.error(error);
   }
