@@ -16,15 +16,6 @@ import {
 
 const BASE_URL = 'https://matric.caprover.madooei.com/api/v1';
 
-type ErrorResponse = {
-  response: {
-    data: {
-      status: number;
-      message: string;
-    };
-  };
-};
-
 async function genMatricTokenInfo(token: string) {
   try {
     const matricToken = (
