@@ -13101,17 +13101,19 @@ const child_process_1 = __nccwpck_require__(2081);
 const axios_1 = __importDefault(__nccwpck_require__(8757));
 const json_util_1 = __nccwpck_require__(9108);
 const file_util_1 = __nccwpck_require__(9637);
-const BASE_URL = 'https://matric.caprover.madooei.com';
+const BASE_URL = 'https://matric.caprover.madooei.com/api/v1/';
 function genMatricTokenInfo(token) {
     return __awaiter(this, void 0, void 0, function* () {
         try {
-            const res = yield axios_1.default.post(`${BASE_URL}/actions/auth`, {
+            const matricToken = (yield axios_1.default.post(`${BASE_URL}/actions/auth`, {
                 token: token,
-            });
-            const resJWT = yield axios_1.default.post(`${BASE_URL}/actions/auth/test`, {
-                token: res.data.token,
-            });
-            return yield resJWT.data;
+            })).data;
+            console.log(matricToken);
+            const decodedContents = (yield axios_1.default.post(`${BASE_URL}/actions/auth/decode`, {
+                token: matricToken,
+            })).data;
+            console.log(decodedContents);
+            return decodedContents;
         }
         catch (error) {
             console.error(error);
