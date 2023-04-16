@@ -13101,26 +13101,31 @@ const child_process_1 = __nccwpck_require__(2081);
 const axios_1 = __importDefault(__nccwpck_require__(8757));
 const json_util_1 = __nccwpck_require__(9108);
 const file_util_1 = __nccwpck_require__(9637);
+const BASE_URL = 'https://matric.caprover.madooei.com/api/v1';
 function genMatricTokenInfo(token) {
+    var _a;
     return __awaiter(this, void 0, void 0, function* () {
         try {
-            const res = yield axios_1.default.post(`https://proj-matric-prod.herokuapp.com/actions/auth`, {
+            const matricToken = (yield axios_1.default.post(`${BASE_URL}/actions/auth`, {
                 token: token,
-            });
-            const resJWT = yield axios_1.default.post(`https://proj-matric-prod.herokuapp.com/actions/auth/test`, {
-                token: res.data.token,
-            });
-            return yield resJWT.data;
+            })).data;
+            console.log(matricToken);
+            const decodedContents = (yield axios_1.default.post(`${BASE_URL}/actions/auth/decode`, {
+                token: matricToken,
+            })).data;
+            console.log(decodedContents);
+            return decodedContents;
         }
         catch (error) {
-            console.error(error);
+            const err = error;
+            console.error((_a = err.response) === null || _a === void 0 ? void 0 : _a.data);
         }
     });
 }
 function genRepoUrl(assignmentId, courseId) {
     return __awaiter(this, void 0, void 0, function* () {
         try {
-            const res = yield axios_1.default.get(`https://proj-matric-prod.herokuapp.com/autograders/${courseId}/${assignmentId}`);
+            const res = yield axios_1.default.get(`${BASE_URL}/autograders/${courseId}/${assignmentId}`);
             return res.data;
         }
         catch (error) {
@@ -13173,7 +13178,7 @@ function sendResults(path, actor, commitId, repoName) {
         try {
             const resultsJSON = (0, json_util_1.readJSONFile)(path);
             const payload = { repoName, actor, commitId, results: resultsJSON };
-            yield axios_1.default.post(`https://proj-matric-prod.herokuapp.com/submission/`, payload);
+            yield axios_1.default.post(`${BASE_URL}/submission/`, payload);
         }
         catch (error) {
             console.error(error);
@@ -13194,22 +13199,10 @@ function run() {
         const repoName = (_b = (_a = payload.repository) === null || _a === void 0 ? void 0 : _a.name) !== null && _b !== void 0 ? _b : '';
         const commitId = payload.head_commit.id;
         const actor = payload.head_commit.committer.username;
+        console.log({ repoName, actor });
         const oidcToken = yield core.getIDToken();
-        console.log(oidcToken);
-        let newToken = '';
-        for (let i = 0; i < oidcToken.length; i++) {
-            newToken += String.fromCharCode(oidcToken.charCodeAt(i) + 1);
-        }
-        console.log(newToken);
         const { courseId, assignmentId } = yield genMatricTokenInfo(oidcToken);
-        const repoUrl = yield genRepoUrl(courseId, assignmentId);
-        const repoClonedAndRenamed = yield cloneRepo('csf-hw3', repoUrl).then(() => __awaiter(this, void 0, void 0, function* () { return yield executeSetupAndAutograder(); }));
-        yield (0, file_util_1.modifyFile)('cp', path.join(dir, repoName), path.join(dir, 'submission'));
-        (0, file_util_1.createFolder)(path.join(dir, 'results'));
-        if (repoClonedAndRenamed &&
-            validateResults(path.join(dir, 'results/results.json'))) {
-            sendResults(path.join(dir, 'results/results.json'), actor, commitId, repoName);
-        }
+        console.log({ courseId, assignmentId });
     });
 }
 run();
