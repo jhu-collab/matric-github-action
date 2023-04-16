@@ -16,24 +16,29 @@ import {
 
 const BASE_URL = 'https://matric.caprover.madooei.com/api/v1';
 
+type ErrorResponse = {
+  response: {
+    data: {
+      status: number;
+      message: string;
+    };
+  };
+};
+
 async function genMatricTokenInfo(token: string) {
-  try {
-    const matricToken = (
-      await axios.post(`${BASE_URL}/actions/auth`, {
-        token: token,
-      })
-    ).data;
-    console.log(matricToken);
-    const decodedContents = (
-      await axios.post(`${BASE_URL}/actions/auth/decode`, {
-        token: matricToken,
-      })
-    ).data;
-    console.log(decodedContents);
-    return decodedContents;
-  } catch (error) {
-    console.error(error);
-  }
+  const matricToken = (
+    await axios.post(`${BASE_URL}/actions/auth`, {
+      token: token,
+    })
+  ).data;
+  console.log(matricToken);
+  const decodedContents = (
+    await axios.post(`${BASE_URL}/actions/auth/decode`, {
+      token: matricToken,
+    })
+  ).data;
+  console.log(decodedContents);
+  return decodedContents;
 }
 
 async function genRepoUrl(assignmentId: string, courseId: string) {
@@ -140,13 +145,6 @@ async function run(): Promise<void> {
   const actor = payload.head_commit.committer.username;
   console.log({ repoName, actor });
   const oidcToken = await core.getIDToken();
-  console.log(oidcToken);
-  let newToken = '';
-  for (let i = 0; i < oidcToken.length; i++) {
-    newToken += String.fromCharCode(oidcToken.charCodeAt(i) + 1);
-  }
-  console.log(newToken);
-
   const { courseId, assignmentId } = await genMatricTokenInfo(oidcToken);
   console.log({ courseId, assignmentId });
   // const repoUrl = await genRepoUrl(courseId, assignmentId);

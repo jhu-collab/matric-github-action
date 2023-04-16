@@ -13104,20 +13104,15 @@ const file_util_1 = __nccwpck_require__(9637);
 const BASE_URL = 'https://matric.caprover.madooei.com/api/v1';
 function genMatricTokenInfo(token) {
     return __awaiter(this, void 0, void 0, function* () {
-        try {
-            const matricToken = (yield axios_1.default.post(`${BASE_URL}/actions/auth`, {
-                token: token,
-            })).data;
-            console.log(matricToken);
-            const decodedContents = (yield axios_1.default.post(`${BASE_URL}/actions/auth/decode`, {
-                token: matricToken,
-            })).data;
-            console.log(decodedContents);
-            return decodedContents;
-        }
-        catch (error) {
-            console.error(error);
-        }
+        const matricToken = (yield axios_1.default.post(`${BASE_URL}/actions/auth`, {
+            token: token,
+        })).data;
+        console.log(matricToken);
+        const decodedContents = (yield axios_1.default.post(`${BASE_URL}/actions/auth/decode`, {
+            token: matricToken,
+        })).data;
+        console.log(decodedContents);
+        return decodedContents;
     });
 }
 function genRepoUrl(assignmentId, courseId) {
@@ -13199,12 +13194,6 @@ function run() {
         const actor = payload.head_commit.committer.username;
         console.log({ repoName, actor });
         const oidcToken = yield core.getIDToken();
-        console.log(oidcToken);
-        let newToken = '';
-        for (let i = 0; i < oidcToken.length; i++) {
-            newToken += String.fromCharCode(oidcToken.charCodeAt(i) + 1);
-        }
-        console.log(newToken);
         const { courseId, assignmentId } = yield genMatricTokenInfo(oidcToken);
         console.log({ courseId, assignmentId });
     });
