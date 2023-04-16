@@ -14,7 +14,7 @@ import {
   build_path,
 } from './util/file-util';
 
-const BASE_URL = 'https://matric.caprover.madooei.com/api/v1/';
+const BASE_URL = 'https://matric.caprover.madooei.com/api/v1';
 
 async function genMatricTokenInfo(token: string) {
   try {
